@@ -91,7 +91,18 @@ img, svg { will-change: auto; }
 }
 
 /* ============================================================
-   GLOBAL ANIMATED BEAMS — visible on ALL pages
+   PARTICLE CANVAS — Antigravity-style floating dots
+   ============================================================ */
+#particleCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
+}
+
+/* ============================================================
+   GLOBAL ANIMATED BEAMS — visible on ALL pages (dimmed for particles)
    ============================================================ */
 .beams-bg {
   position: fixed;
@@ -99,6 +110,7 @@ img, svg { will-change: auto; }
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  opacity: 0.35;
 }
 
 .beams-bg::before {
@@ -171,6 +183,7 @@ img, svg { will-change: auto; }
   animation: loginBeams 20s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
+  opacity: 0.3;
 }
 
 .login-container::after {
