@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — MATLAB Monitor</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="register-page">
+  <div class="login-container">
+    <div class="form auth-form-card login-card">
+      <h1>Create Account</h1>
+      <p class="subtitle">Register for MATLAB Monitor</p>
+
+      <div id="alert" class="alert"></div>
+
+      <!-- Step 1: Registration Form -->
+      <form id="registerForm">
+        <div class="flex-column">
+          <label for="username">Username</label>
+        </div>
+        <div class="inputForm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20" fill="none" aria-hidden="true">
+            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M16 7c3.866 0 7 3.134 7 7s-3.134 7-7 7-7-3.134-7-7 3.134-7 7-7Z"></path>
+            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M7 26c1.8-3.2 5.2-5 9-5s7.2 1.8 9 5"></path>
+          </svg>
+          <input type="text" id="username" class="input" placeholder="Choose a username" required autocomplete="username" minlength="3">
+        </div>
+
+        <div class="flex-column">
+          <label for="email">Email Address</label>
+        </div>
+        <div class="inputForm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20" fill="none" aria-hidden="true">
+            <path d="M4 6h16v12H4z" stroke="#151717" stroke-width="2" rx="2"></path>
+            <path d="M4 8l8 5 8-5" stroke="#151717" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <input type="email" id="email" class="input" placeholder="Enter your email" required autocomplete="email">
+        </div>
+
+        <div class="flex-column">
+          <label for="password">Password</label>
+        </div>
+        <div class="inputForm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20" fill="none" aria-hidden="true">
+            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M10 14V10a6 6 0 0 1 12 0v4"></path>
+            <rect width="18" height="12" x="7" y="14" stroke-width="2" stroke="#151717" rx="2"></rect>
+            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M16 19v2"></path>
+          </svg>
+          <input type="password" id="password" class="input" placeholder="Min 6 characters" required autocomplete="new-password" minlength="6">
+        </div>
+
+        <div class="flex-column">
+          <label for="confirmPassword">Confirm Password</label>
+        </div>
+        <div class="inputForm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20" fill="none" aria-hidden="true">
+            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M10 14V10a6 6 0 0 1 12 0v4"></path>
+            <rect width="18" height="12" x="7" y="14" stroke-width="2" stroke="#151717" rx="2"></rect>
+            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M16 19v2"></path>
+          </svg>
+          <input type="password" id="confirmPassword" class="input" placeholder="Confirm your password" required autocomplete="new-password" minlength="6">
+        </div>
+
+        <button type="submit" class="button-submit" id="registerBtn">
+          Create Account
+        </button>
+      </form>
+
+      <!-- Step 2: Email Verification -->
+      <form id="verifyForm" style="display:none;">
+        <div class="otp-info">
+          <div class="otp-icon">📧</div>
+          <p>We've sent a verification code to</p>
+          <p class="otp-email" id="verifyEmail">your@email.com</p>
+        </div>
+
+        <div class="flex-column">
+          <label for="otpCode">Verification Code</label>
+        </div>
+        <div class="inputForm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20" fill="none" aria-hidden="true">
+            <path d="M4 12h16M12 4v16" stroke="#151717" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+          <input type="text" id="otpCode" class="input otp-code-input" placeholder="Enter 6-digit code" required maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" inputmode="numeric">
+        </div>
+
+        <button type="submit" class="button-submit" id="verifyBtn" style="width:100%;">
+          Verify Email
+        </button>
+
+        <div class="otp-actions">
+          <button type="button" class="btn-link" id="resendOtp" onclick="resendRegOTP()">Resend Code</button>
+          <span class="separator">•</span>
+          <button type="button" class="btn-link" onclick="backToRegister()">Back</button>
+        </div>
+
+        <div id="otpTimer" class="otp-timer">Code expires in <span id="countdown">5:00</span></div>
+      </form>
+
+      <!-- Success screen -->
+      <div id="successScreen" style="display:none;">
+        <div class="otp-info">
+          <div class="otp-icon" style="font-size:3rem;">✅</div>
+          <h2 style="color:#151717;margin:12px 0;">Registration Complete!</h2>
+          <p>Your account has been created successfully.</p>
+          <p style="margin-top:8px;">You can now log in with your credentials.</p>
+        </div>
+        <a href="/login" class="button-submit" style="width:100%;text-decoration:none;margin-top:16px;display:flex;align-items:center;justify-content:center;">Go to Login</a>
+      </div>
+
+      <div class="register-link" id="loginLink">
+        <p class="p">Already have an account? <a class="span" href="/login">Sign In</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let regEmail = '';
+    let countdownInterval = null;
+
+    // If already logged in, redirect
+    (async () => {
+      const user = await Auth.check();
+      if (user) window.location.href = '/dashboard';
+    })();
+
+    // Step 1: Submit registration
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alert = document.getElementById('alert');
+      const btn = document.getElementById('registerBtn');
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (password !== confirmPassword) {
+        alert.className = 'alert alert-error';
+        alert.textContent = 'Passwords do not match';
+        alert.style.display = 'block';
+        return;
+      }
+
+      alert.className = 'alert';
+      alert.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Sending verification...';
+
+      try {
+        const res = await API.post('/api/auth/register', { username, email, password });
+        regEmail = email;
+
+        // Show verification form
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('loginLink').style.display = 'none';
+        document.getElementById('verifyForm').style.display = 'block';
+        document.getElementById('verifyEmail').textContent = email;
+        document.getElementById('otpCode').focus();
+        startCountdown();
+
+        // Update title
+        document.querySelector('.login-card h1').textContent = 'Verify Email';
+        document.querySelector('.login-card .subtitle').textContent = 'Enter the code sent to your email';
+
+        alert.className = 'alert alert-success';
+        alert.textContent = res.message;
+        alert.style.display = 'block';
+      } catch (err) {
+        alert.className = 'alert alert-error';
+        alert.textContent = err.message;
+        alert.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    });
+
+    // Step 2: Verify OTP
+    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alert = document.getElementById('alert');
+      const btn = document.getElementById('verifyBtn');
+      const otp = document.getElementById('otpCode').value.trim();
+
+      if (otp.length !== 6) {
+        alert.className = 'alert alert-error';
+        alert.textContent = 'Please enter a valid 6-digit code';
+        alert.style.display = 'block';
+        return;
+      }
+
+      alert.className = 'alert';
+      alert.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      try {
+        const res = await API.post('/api/auth/verify-register', { email: regEmail, otp });
+        clearInterval(countdownInterval);
+
+        // Show success
+        document.getElementById('verifyForm').style.display = 'none';
+        document.getElementById('alert').style.display = 'none';
+        document.getElementById('successScreen').style.display = 'block';
+        document.querySelector('.login-card h1').textContent = '';
+        document.querySelector('.login-card .subtitle').textContent = '';
+      } catch (err) {
+        alert.className = 'alert alert-error';
+        alert.textContent = err.message;
+        alert.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Verify Email';
+      }
+    });
+
+    // Resend OTP
+    async function resendRegOTP() {
+      const alert = document.getElementById('alert');
+      const resendBtn = document.getElementById('resendOtp');
+      resendBtn.disabled = true;
+      resendBtn.textContent = 'Sending...';
+
+      try {
+        await API.post('/api/auth/resend-otp', { email: regEmail, purpose: 'register' });
+        alert.className = 'alert alert-success';
+        alert.textContent = 'New verification code sent!';
+        alert.style.display = 'block';
+        startCountdown();
+      } catch (err) {
+        alert.className = 'alert alert-error';
+        alert.textContent = err.message;
+        alert.style.display = 'block';
+      } finally {
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend Code';
+      }
+    }
+
+    // Back to registration form
+    function backToRegister() {
+      clearInterval(countdownInterval);
+      document.getElementById('verifyForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'block';
+      document.getElementById('loginLink').style.display = 'block';
+      document.getElementById('alert').style.display = 'none';
+      document.querySelector('.login-card h1').textContent = 'Create Account';
+      document.querySelector('.login-card .subtitle').textContent = 'Register for MATLAB Monitor';
+    }
+
+    // Countdown timer
+    function startCountdown() {
+      clearInterval(countdownInterval);
+      let timeLeft = 5 * 60;
+      const timerEl = document.getElementById('countdown');
+
+      countdownInterval = setInterval(() => {
+        timeLeft--;
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        if (timeLeft <= 0) {
+          clearInterval(countdownInterval);
+          timerEl.textContent = 'Expired';
+          document.getElementById('otpTimer').style.color = 'var(--danger)';
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

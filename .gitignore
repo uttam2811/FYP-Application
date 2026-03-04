@@ -1,0 +1,8 @@
+node_modules/
+.env
+*.db
+server/matlab-output/*.csv
+server/matlab-output/*.json
+server/matlab-output/*.txt
+server/matlab-output/*.mat
+!server/matlab-output/.gitkeep

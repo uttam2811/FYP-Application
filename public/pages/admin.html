@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — MATLAB Monitor</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="beams-bg"></div>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>📡 MATLAB Monitor <span class="tag">LIVE</span></h2>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigation</div>
+          <a href="/dashboard" class="nav-link">
+            <span class="icon">📊</span> Dashboard
+          </a>
+          <a href="/bus-system" class="nav-link">
+            <span class="icon">🔌</span> IEEE 13 Bus
+          </a>
+          <a href="/simulations" class="nav-link">
+            <span class="icon">⚡</span> Simulations
+          </a>
+          <a href="/admin" class="nav-link active">
+            <span class="icon">⚙️</span> Admin Panel
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div class="user-details">
+            <div class="name" id="userName">Loading...</div>
+            <div class="role" id="userRole">—</div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="width:100%;margin-top:8px;" onclick="Auth.logout()">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-header">
+        <h1>Admin Panel</h1>
+        <div class="header-actions">
+          <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Add New User</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllSimulations()">Clear All Simulations</button>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- Admin Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">👥</div>
+            <div class="stat-value" id="statTotalUsers">0</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🛡️</div>
+            <div class="stat-value" id="statAdmins">0</div>
+            <div class="stat-label">Admin Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">👤</div>
+            <div class="stat-value" id="statViewers">0</div>
+            <div class="stat-label">Viewer Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon teal">📊</div>
+            <div class="stat-value" id="statSimCount">0</div>
+            <div class="stat-label">Total Simulations</div>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+          <div class="card-header">
+            <h3>👥 User Management</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadUsers()">Refresh</button>
+          </div>
+          <div class="card-body table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+          <div class="card-header">
+            <h3>📋 Activity Log</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadActivity()">Refresh</button>
+          </div>
+          <div class="card-body" id="activityLog">
+            <p style="color:var(--text-muted);text-align:center;padding:20px;">Loading...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal-overlay" id="addUserModal">
+    <div class="modal">
+      <h2>Add New User</h2>
+      <div id="addUserAlert" class="alert"></div>
+      <form id="addUserForm">
+        <div class="form-group">
+          <label for="newUsername">Username</label>
+          <input type="text" id="newUsername" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label for="newEmail">Email</label>
+          <input type="email" id="newEmail" placeholder="Enter email" required>
+        </div>
+        <div class="form-group">
+          <label for="newPassword">Password</label>
+          <input type="password" id="newPassword" placeholder="Enter password (min 6 chars)" required minlength="6">
+        </div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">
+          ⓘ New users are created with <strong>viewer</strong> role. Admins can promote users to admin from the table below.
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeAddUser()">Cancel</button>
+          <button type="submit" class="btn btn-success btn-sm">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    (async () => {
+      const user = await Auth.check();
+      if (!user) return window.location.href = '/login';
+      if (user.role !== 'admin') return window.location.href = '/dashboard';
+
+      document.getElementById('userName').textContent = user.username;
+      document.getElementById('userRole').textContent = user.role;
+      document.getElementById('userAvatar').textContent = user.username[0].toUpperCase();
+
+      loadStats();
+      loadUsers();
+      loadActivity();
+    })();
+
+    async function loadStats() {
+      try {
+        const data = await API.get('/api/admin/stats');
+        document.getElementById('statTotalUsers').textContent = data.totalUsers;
+        document.getElementById('statAdmins').textContent = data.adminCount;
+        document.getElementById('statViewers').textContent = data.viewerCount;
+        document.getElementById('statSimCount').textContent = data.totalSimulations;
+      } catch (err) {
+        console.error('Stats error:', err);
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const data = await API.get('/api/users');
+        const tbody = document.getElementById('usersTableBody');
+
+        tbody.innerHTML = data.users.map(user => `
+          <tr>
+            <td>${user.id}</td>
+            <td><strong>${user.username}</strong></td>
+            <td>${user.email}</td>
+            <td><span class="role-badge ${user.role}">${user.role}</span></td>
+            <td><span class="status-badge ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>${formatDateTime(user.created_at)}</td>
+            <td>
+              ${user.role === 'admin' ? `
+                <button class="btn btn-outline btn-sm" onclick="changeRole(${user.id}, 'viewer', '${user.username}')" title="Demote to viewer">Demote</button>
+              ` : `
+                <button class="btn btn-primary btn-sm" onclick="changeRole(${user.id}, 'admin', '${user.username}')" title="Promote to admin">🛡️ Make Admin</button>
+                <button class="btn btn-outline btn-sm" onclick="toggleUser(${user.id})">${user.is_active ? 'Deactivate' : 'Activate'}</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id}, '${user.username}')">Delete</button>
+              `}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showToast('Failed to load users', 'error');
+      }
+    }
+
+    async function loadActivity() {
+      try {
+        const data = await API.get('/api/admin/activity');
+        const container = document.getElementById('activityLog');
+
+        if (data.logs.length === 0) {
+          container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">No activity yet</p>';
+          return;
+        }
+
+        container.innerHTML = data.logs.map(log => `
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.875rem;">
+            <div>
+              <strong>${log.username || 'System'}</strong>
+              <span style="color:var(--text-muted);margin:0 8px;">—</span>
+              ${log.details || log.action}
+            </div>
+            <span style="color:var(--text-muted);white-space:nowrap;">${timeAgo(log.timestamp)}</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Activity error:', err);
+      }
+    }
+
+    // Add user
+    function openAddUser() {
+      document.getElementById('addUserModal').classList.add('active');
+      document.getElementById('addUserAlert').className = 'alert';
+      document.getElementById('addUserForm').reset();
+    }
+
+    function closeAddUser() {
+      document.getElementById('addUserModal').classList.remove('active');
+    }
+
+    document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alert = document.getElementById('addUserAlert');
+      const username = document.getElementById('newUsername').value.trim();
+      const email = document.getElementById('newEmail').value.trim();
+      const password = document.getElementById('newPassword').value;
+
+      try {
+        await API.post('/api/users', { username, email, password });
+        showToast(`User '${username}' created (viewer role)`, 'success');
+        closeAddUser();
+        loadUsers();
+        loadStats();
+      } catch (err) {
+        alert.className = 'alert alert-error';
+        alert.textContent = err.message;
+      }
+    });
+
+    // Delete user
+    async function deleteUser(id, username) {
+      if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
+      try {
+        await API.delete(`/api/users/${id}`);
+        showToast(`User '${username}' deleted`, 'success');
+        loadUsers();
+        loadStats();
+        loadActivity();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // Toggle user active/inactive
+    async function toggleUser(id) {
+      try {
+        await API.patch(`/api/users/${id}/toggle`);
+        showToast('User status updated', 'success');
+        loadUsers();
+        loadStats();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // Clear all simulation data
+    async function clearAllSimulations() {
+      if (!confirm('This will permanently delete ALL simulation data. Are you sure?')) return;
+      try {
+        await API.delete('/api/admin/simulations/clear');
+        showToast('All simulation data cleared', 'success');
+        loadStats();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // Change user role (promote/demote)
+    async function changeRole(id, newRole, username) {
+      const action = newRole === 'admin' ? 'promote' : 'demote';
+      if (!confirm(`Are you sure you want to ${action} "${username}" to ${newRole}?`)) return;
+      try {
+        await API.patch(`/api/users/${id}/role`, { role: newRole });
+        showToast(`User '${username}' is now ${newRole}`, 'success');
+        loadUsers();
+        loadStats();
+        loadActivity();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
