@@ -380,6 +380,225 @@ router.post('/run-pl1day', authenticate, (req, res) => {
 });
 
 // POST /api/bus-system/run-simulation — trigger MATLAB simulation from the web UI
+router.post('/run-ga-wp', authenticate, (req, res) => {
+  if (simStatus.running) {
+    return res.status(409).json({
+      error: 'A simulation is already running',
+      session_id: simStatus.session_id,
+      status: simStatus.status
+    });
+  }
+
+  const matlabPaths = [
+    'C:\\Program Files\\MATLAB\\R2025a\\bin\\matlab.exe',
+    'C:\\Program Files\\MATLAB\\R2025b\\bin\\matlab.exe',
+    'C:\\Program Files\\MATLAB\\R2026a\\bin\\matlab.exe',
+    'C:\\Program Files\\MATLAB\\R2026b\\bin\\matlab.exe',
+    'C:\\Program Files\\MATLAB\\R2024b\\bin\\matlab.exe',
+    'C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe',
+    'C:\\Program Files\\MATLAB\\R2023b\\bin\\matlab.exe',
+    'C:\\Program Files\\MATLAB\\R2023a\\bin\\matlab.exe',
+  ];
+
+  if (req.body.matlab_path) matlabPaths.unshift(req.body.matlab_path);
+  if (process.env.MATLAB_PATH) matlabPaths.unshift(process.env.MATLAB_PATH);
+
+  let matlabExe = null;
+  for (const p of matlabPaths) {
+    if (fs.existsSync(p)) { matlabExe = p; break; }
+  }
+
+  if (!matlabExe) {
+    return res.status(500).json({
+      error: 'MATLAB not found on this system. Checked: ' + matlabPaths.slice(0, 4).join(', ')
+    });
+  }
+
+  // Use the dedicated runner script
+  const runnerScript = path.resolve(__dirname, '..', '..', 'matlab', 'run_ga_wp_auto.m');
+  if (!fs.existsSync(runnerScript)) {
+    return res.status(500).json({ error: 'GA-WP runner script not found', path: runnerScript });
+  }
+
+  const sessionId = 'ga-wp-' + Date.now();
+  const logFile = path.resolve(__dirname, '..', 'matlab-output', `matlab_ga_wp_${sessionId}.log`);
+  try { fs.mkdirSync(path.dirname(logFile), { recursive: true }); } catch (e) {}
+  const diaryPath = logFile.replace(/\\/g, '/');
+  const runnerPath = runnerScript.replace(/\\/g, '/');
+
+  // The runner script handles everything: weather data, Ts_Power, Ts_Control, sim, streaming
+  const matlabCmd = [
+    `diary('${diaryPath}')`,
+    'diary on',
+    `disp('[GA-WP] Session: ${sessionId}')`,
+    `run('${runnerPath}')`,
+    'diary off',
+    'exit(0)'
+  ].join('; ') + ';';
+
+  simStatus.running = true;
+  simStatus.status = 'starting';
+  simStatus.message = 'Launching MATLAB — GA WP simulation...';
+  simStatus.started_at = new Date().toISOString();
+  simStatus.updated_at = simStatus.started_at;
+  simStatus.session_id = sessionId;
+
+  const io = req.app.get('io');
+  if (io) {
+    io.emit('bus-system:status', {
+      session_id: simStatus.session_id,
+      status: 'starting',
+      message: simStatus.message,
+      timestamp: simStatus.updated_at
+    });
+    io.emit('ga-wp:log', {
+      session_id: simStatus.session_id,
+      level: 'info',
+      text: `[GA-WP] MATLAB executable: ${matlabExe}`,
+      timestamp: simStatus.updated_at
+    });
+    io.emit('ga-wp:log', {
+      session_id: simStatus.session_id,
+      level: 'info',
+      text: `[GA-WP] Runner script: ${runnerScript}`,
+      timestamp: simStatus.updated_at
+    });
+  }
+
+  const args = ['-nodesktop', '-nosplash', '-r', matlabCmd];
+  console.log(`[GA-WP] Launching MATLAB: "${matlabExe}"`);
+  console.log(`[GA-WP] Runner: ${runnerScript}`);
+  console.log(`[GA-WP] Log file: ${logFile}`);
+
+  try {
+    const child = spawn(matlabExe, args, {
+      cwd: path.resolve(__dirname, '..', '..'),
+      detached: false,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true
+    });
+
+    simStatus.pid = child.pid || null;
+
+    if (child.stdout) {
+      child.stdout.on('data', (chunk) => {
+        const text = chunk.toString().trim();
+        if (!text) return;
+        console.log(`[GA-WP][MATLAB] ${text}`);
+        if (io) {
+          io.emit('ga-wp:log', {
+            session_id: simStatus.session_id,
+            level: 'stdout',
+            text,
+            timestamp: new Date().toISOString()
+          });
+        }
+      });
+    }
+
+    if (child.stderr) {
+      child.stderr.on('data', (chunk) => {
+        const text = chunk.toString().trim();
+        if (!text) return;
+        console.error(`[GA-WP][MATLAB-ERR] ${text}`);
+        if (io) {
+          io.emit('ga-wp:log', {
+            session_id: simStatus.session_id,
+            level: 'stderr',
+            text,
+            timestamp: new Date().toISOString()
+          });
+        }
+      });
+    }
+
+    child.on('exit', (code) => {
+      console.log(`[GA-WP] MATLAB exited with code ${code}`);
+
+      if (simStatus.running) {
+        simStatus.running = false;
+        simStatus.pid = null;
+        simStatus.updated_at = new Date().toISOString();
+        simStatus.status = code === 0 ? 'completed' : 'error';
+        simStatus.message = code === 0 ? 'GA WP MATLAB run completed' : `GA WP MATLAB exited with code ${code}`;
+      }
+
+      if (io) {
+        io.emit('bus-system:status', {
+          session_id: simStatus.session_id,
+          status: simStatus.status,
+          message: simStatus.message,
+          timestamp: simStatus.updated_at
+        });
+        io.emit('ga-wp:log', {
+          session_id: simStatus.session_id,
+          level: code === 0 ? 'info' : 'stderr',
+          text: `[GA-WP] MATLAB process ended with code ${code}. Diary: ${logFile}`,
+          timestamp: simStatus.updated_at
+        });
+      }
+    });
+
+    setTimeout(() => {
+      if (simStatus.status === 'starting' && simStatus.running) {
+        simStatus.status = 'running';
+        simStatus.message = 'MATLAB is running GA WP simulation...';
+        simStatus.updated_at = new Date().toISOString();
+        if (io) {
+          io.emit('bus-system:status', {
+            session_id: simStatus.session_id,
+            status: simStatus.status,
+            message: simStatus.message,
+            timestamp: simStatus.updated_at
+          });
+        }
+      }
+    }, 8000);
+
+    setTimeout(() => {
+      if (simStatus.running) {
+        simStatus.running = false;
+        simStatus.status = 'completed';
+        simStatus.message = 'GA WP session timed out (25 min) — verify MATLAB run';
+        simStatus.pid = null;
+        simStatus.updated_at = new Date().toISOString();
+        if (io) {
+          io.emit('bus-system:status', {
+            session_id: simStatus.session_id,
+            status: simStatus.status,
+            message: simStatus.message,
+            timestamp: simStatus.updated_at
+          });
+        }
+      }
+    }, 1500000);
+
+    return res.json({
+      message: 'MATLAB launched — GA-WP simulation with weather data + live streaming',
+      pid: child.pid,
+      matlab: matlabExe,
+      runner_script: runnerScript,
+      session_id: sessionId,
+      log_file: logFile
+    });
+  } catch (err) {
+    console.error('[GA-WP] Failed to launch MATLAB:', err.message);
+    simStatus.running = false;
+    simStatus.status = 'error';
+    simStatus.message = err.message;
+    simStatus.pid = null;
+    if (io) {
+      io.emit('ga-wp:log', {
+        session_id: simStatus.session_id,
+        level: 'stderr',
+        text: `[GA-WP] Launch failed: ${err.message}`,
+        timestamp: new Date().toISOString()
+      });
+    }
+    return res.status(500).json({ error: 'Failed to launch MATLAB: ' + err.message });
+  }
+});
+
 router.post('/run-simulation', authenticate, (req, res) => {
   if (simStatus.running) {
     return res.status(409).json({

@@ -96,63 +96,18 @@ img, svg { will-change: auto; }
 #particleCanvas {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   opacity: 1;
 }
 
 /* ============================================================
-   GLOBAL ANIMATED BEAMS — visible on ALL pages (dimmed for particles)
+   GLOBAL ANIMATED BEAMS — DISABLED (particles only)
    ============================================================ */
-.beams-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  opacity: 0.35;
-}
-
-.beams-bg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background:
-    linear-gradient(115deg, transparent 12%, rgba(255,255,255,0.06) 15%, rgba(255,255,255,0.15) 18%, rgba(255,255,255,0.25) 21%, rgba(255,255,255,0.15) 24%, rgba(255,255,255,0.06) 27%, transparent 30%),
-    linear-gradient(115deg, transparent 33%, rgba(255,255,255,0.04) 35%, rgba(255,255,255,0.12) 37.5%, rgba(255,255,255,0.22) 40%, rgba(255,255,255,0.12) 42.5%, rgba(255,255,255,0.04) 45%, transparent 47%),
-    linear-gradient(115deg, transparent 52%, rgba(255,255,255,0.03) 54%, rgba(255,255,255,0.10) 56%, rgba(255,255,255,0.18) 58%, rgba(255,255,255,0.10) 60%, rgba(255,255,255,0.03) 62%, transparent 64%),
-    linear-gradient(115deg, transparent 68%, rgba(255,255,255,0.03) 70%, rgba(255,255,255,0.09) 72%, rgba(255,255,255,0.16) 74%, rgba(255,255,255,0.09) 76%, rgba(255,255,255,0.03) 78%, transparent 80%),
-    linear-gradient(115deg, transparent 83%, rgba(255,255,255,0.04) 85%, rgba(255,255,255,0.11) 87%, rgba(255,255,255,0.20) 89%, rgba(255,255,255,0.11) 91%, rgba(255,255,255,0.04) 93%, transparent 95%);
-  animation: beamDrift 30s ease-in-out infinite alternate;
-}
-
+.beams-bg,
+.beams-bg::before,
 .beams-bg::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background:
-    linear-gradient(135deg, transparent 8%, rgba(255,255,255,0.04) 11%, rgba(255,255,255,0.12) 14%, rgba(255,255,255,0.20) 17%, rgba(255,255,255,0.12) 20%, rgba(255,255,255,0.04) 23%, transparent 26%),
-    linear-gradient(135deg, transparent 38%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.08) 42.5%, rgba(255,255,255,0.14) 45%, rgba(255,255,255,0.08) 47.5%, rgba(255,255,255,0.03) 50%, transparent 52%),
-    linear-gradient(135deg, transparent 62%, rgba(255,255,255,0.03) 64%, rgba(255,255,255,0.09) 66.5%, rgba(255,255,255,0.16) 69%, rgba(255,255,255,0.09) 71.5%, rgba(255,255,255,0.03) 74%, transparent 76%);
-  animation: beamDrift2 35s ease-in-out infinite alternate-reverse;
-  opacity: 1;
-}
-
-@keyframes beamDrift {
-  0%   { transform: translate(-5%, -8%) rotate(-1deg); }
-  50%  { transform: translate(3%, 5%) rotate(0.5deg); }
-  100% { transform: translate(-3%, -3%) rotate(-0.5deg); }
-}
-@keyframes beamDrift2 {
-  0%   { transform: translate(4%, 6%) rotate(0.5deg); }
-  50%  { transform: translate(-5%, -4%) rotate(-0.5deg); }
-  100% { transform: translate(2%, 3%) rotate(0.3deg); }
+  display: none !important;
 }
 
 /* ===== LOGIN / REGISTER BACKGROUND ===== */
@@ -164,43 +119,13 @@ img, svg { will-change: auto; }
   background: #000;
   padding: 20px;
   position: relative;
+  z-index: 2;
   overflow: hidden;
 }
 
-.login-container::before {
-  content: '';
-  position: absolute;
-  top: -80%;
-  left: -80%;
-  width: 360%;
-  height: 360%;
-  background:
-    linear-gradient(120deg, transparent 12%, rgba(255,255,255,0.06) 16%, rgba(255,255,255,0.18) 19%, rgba(255,255,255,0.30) 22%, rgba(255,255,255,0.18) 25%, rgba(255,255,255,0.06) 28%, transparent 32%),
-    linear-gradient(120deg, transparent 32%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0.15) 38%, rgba(255,255,255,0.26) 40.5%, rgba(255,255,255,0.15) 43%, rgba(255,255,255,0.05) 46%, transparent 49%),
-    linear-gradient(120deg, transparent 49%, rgba(255,255,255,0.04) 52%, rgba(255,255,255,0.13) 54.5%, rgba(255,255,255,0.22) 57%, rgba(255,255,255,0.13) 59.5%, rgba(255,255,255,0.04) 62%, transparent 65%),
-    linear-gradient(120deg, transparent 63%, rgba(255,255,255,0.04) 66%, rgba(255,255,255,0.12) 68.5%, rgba(255,255,255,0.20) 71%, rgba(255,255,255,0.12) 73.5%, rgba(255,255,255,0.04) 76%, transparent 79%),
-    linear-gradient(120deg, transparent 77%, rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.14) 82.5%, rgba(255,255,255,0.24) 85%, rgba(255,255,255,0.14) 87.5%, rgba(255,255,255,0.05) 90%, transparent 93%);
-  animation: loginBeams 20s ease-in-out infinite alternate;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.3;
-}
-
+.login-container::before,
 .login-container::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 25% 50%, rgba(255,255,255,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 75% 30%, rgba(255,255,255,0.04) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.03) 0%, transparent 45%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes loginBeams {
-  0%   { transform: translate(-5%, -6%) rotate(-0.5deg); }
-  100% { transform: translate(4%, 5%) rotate(1deg); }
+  display: none !important;
 }
 
 /* ===== LOGIN CARD ===== */
@@ -272,7 +197,7 @@ img, svg { will-change: auto; }
 .alert-success { background: var(--success-light); color: #86efac; border-color: rgba(34, 197, 94, 0.2); display: block; }
 
 /* ===== APP LAYOUT ===== */
-.app-layout { display: flex; min-height: 100vh; background: transparent; position: relative; }
+.app-layout { display: flex; min-height: 100vh; background: transparent; position: relative; z-index: 2; }
 
 /* ===== SIDEBAR ===== */
 .sidebar {
@@ -2061,13 +1986,15 @@ body:not(.login-page):not(.register-page) .form-group select:focus {
 /* ---------- Auth pages in same reference style ---------- */
 body.login-page,
 body.register-page {
-  background: linear-gradient(180deg, #f7f9ff 0%, #f3f5fc 100%) !important;
+  background: #ffffff !important;
   color: #1e293b !important;
 }
 
 body.login-page .login-container,
 body.register-page .login-container {
   background: transparent !important;
+  position: relative;
+  z-index: 2;
 }
 
 body.login-page .login-container::before,
@@ -2878,7 +2805,7 @@ body.register-page .btn-success {
    LOGIN PAGE — UIVERSE FORM STYLE (micaelgomestavares)
    ============================================================ */
 body.login-page {
-  background: #f2f4f7 !important;
+  background: #ffffff !important;
   color: #151717 !important;
 }
 
@@ -2897,7 +2824,9 @@ body.login-page .login-container {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: #f2f4f7 !important;
+  background: transparent !important;
+  position: relative;
+  z-index: 2;
 }
 
 body.login-page .form {
@@ -2912,6 +2841,8 @@ body.login-page .form {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   border: 1px solid #ecedec;
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08) !important;
+  position: relative;
+  z-index: 2;
 }
 
 body.login-page .form h1 {
@@ -3159,7 +3090,7 @@ body.login-page .submit-btn::after {
    REGISTER PAGE — UIVERSE FORM STYLE
    ============================================================ */
 body.register-page {
-  background: #f2f4f7 !important;
+  background: #ffffff !important;
   color: #151717 !important;
 }
 
@@ -3178,7 +3109,9 @@ body.register-page .login-container {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: #f2f4f7 !important;
+  background: transparent !important;
+  position: relative;
+  z-index: 2;
 }
 
 body.register-page .form {
@@ -3193,6 +3126,8 @@ body.register-page .form {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   border: 1px solid #ecedec;
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08) !important;
+  position: relative;
+  z-index: 2;
 }
 
 body.register-page .form h1 {
@@ -4379,5 +4314,127 @@ button:active {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   ANTIGRAVITY FLOATING TILES  (replicates antigravity.google)
+   —  Icon tiles that float upward with drift + rotation,
+      glass-frosted, varying sizes/speeds, looping infinitely.
+   ============================================================ */
+
+/* Container fills the viewport behind content */
+body.dashboard-page .antigravity-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Individual floating tile */
+body.dashboard-page .ag-tile {
+  position: absolute;
+  bottom: -60px;                /* start just below viewport */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, var(--ag-opa, 0.35));
+  filter: blur(var(--ag-blur, 0px));
+  will-change: transform, opacity;
+  animation: agFloat var(--ag-dur, 18s) linear infinite;
+  animation-delay: var(--ag-delay, 0s);
+}
+
+/* The core float-up keyframes — moves tile from bottom → above viewport
+   while drifting horizontally and rotating */
+@keyframes agFloat {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: var(--ag-opa, 0.35);
+  }
+  /* gently drift and rotate through the middle */
+  50% {
+    transform:
+      translateY(calc(-50vh - 30px))
+      translateX(var(--ag-drift, 0px))
+      rotate(calc(var(--ag-rot, 0deg) * 0.6));
+    opacity: var(--ag-opa, 0.35);
+  }
+  90% {
+    opacity: var(--ag-opa, 0.35);
+  }
+  /* exit above the viewport */
+  100% {
+    transform:
+      translateY(calc(-110vh - 60px))
+      translateX(calc(var(--ag-drift, 0px) * 1.4))
+      rotate(var(--ag-rot, 0deg));
+    opacity: 0;
+  }
+}
+
+/* A subtle hover / wobble micro-animation layered on top for organic feel */
+body.dashboard-page .ag-tile {
+  animation:
+    agFloat var(--ag-dur, 18s) linear infinite,
+    agWobble calc(var(--ag-dur, 18s) * 0.4) ease-in-out infinite alternate;
+}
+
+@keyframes agWobble {
+  0%   { margin-left: 0; }
+  100% { margin-left: calc(var(--ag-drift, 0px) * 0.3); }
+}
+
+/* Slight glow pulse on some tiles — using nth-child for variety */
+body.dashboard-page .ag-tile:nth-child(4n)   { border-color: rgba(34, 211, 238, 0.12); }
+body.dashboard-page .ag-tile:nth-child(4n+1) { border-color: rgba(167, 139, 250, 0.12); }
+body.dashboard-page .ag-tile:nth-child(4n+2) { border-color: rgba(244, 114, 182, 0.12); }
+body.dashboard-page .ag-tile:nth-child(4n+3) { border-color: rgba(163, 230, 53, 0.1); }
+
+/* Every 5th tile gets a faint colored glow */
+body.dashboard-page .ag-tile:nth-child(5n) {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.18),
+    0 0 20px rgba(34, 211, 238, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+body.dashboard-page .ag-tile:nth-child(5n+2) {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.18),
+    0 0 20px rgba(244, 114, 182, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+body.dashboard-page .ag-tile:nth-child(5n+4) {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.18),
+    0 0 20px rgba(167, 139, 250, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Ensure app content stays above the floating field */
+body.dashboard-page .app-layout {
+  position: relative;
+  z-index: 1;
+}
+
+/* Reduced motion — disable antigravity tiles */
+@media (prefers-reduced-motion: reduce) {
+  body.dashboard-page .ag-tile {
+    animation: none !important;
+    opacity: var(--ag-opa, 0.2) !important;
+    bottom: auto;
+    top: 50%;
   }
 }

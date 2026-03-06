@@ -656,6 +656,10 @@
           <span class="tab-icon">⚡</span> Simulation
           <span class="tab-badge">NEW</span>
         </button>
+        <button class="sim-main-tab" onclick="switchMainTab('ga-wp-run')">
+          <span class="tab-icon">🧪</span> GA-WP Run
+          <span class="tab-badge">NEW</span>
+        </button>
         <button class="sim-main-tab" onclick="switchMainTab('weather-code')">
           <span class="tab-icon">💻</span> Weather Code
         </button>
@@ -1690,6 +1694,178 @@ temperature_profile = [time_seconds temperature];
       </div>
 
       <!-- ================================================================ -->
+      <!-- TAB : IEEE13 + SOLAR GA-WP MODEL RUN                            -->
+      <!-- ================================================================ -->
+      <div class="sim-tab-panel" id="panel-ga-wp-run">
+        <div class="page-content">
+
+          <div class="sim-sub-tabs">
+            <button class="sim-sub-tab active" onclick="switchSubTab('ga-wp-run', 'run')">▶ Run Simulation</button>
+            <button class="sim-sub-tab" onclick="switchSubTab('ga-wp-run', 'live')">📊 Live Results</button>
+          </div>
+
+          <div class="sim-sub-panel active" id="ga-wp-run-run">
+            <div class="sim-overview-grid">
+              <div class="sim-overview-card">
+                <div class="ov-icon">🧠</div>
+                <div class="ov-title">Model</div>
+                <div class="ov-value" style="font-size:0.95rem;">aIEEE13bus_with_solar_13bus_GA_wp</div>
+                <div class="ov-desc">Simulink GA-WP IEEE13 bus model (.slx)</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">🌦️</div>
+                <div class="ov-title">Weather Script</div>
+                <div class="ov-value" style="font-size:0.95rem;">weather_generator_1day</div>
+                <div class="ov-desc">Weather profile preprocessing script (.m)</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">📁</div>
+                <div class="ov-title">Source Folder</div>
+                <div class="ov-value" style="font-size:0.9rem;">D:\FPY Application_Files</div>
+                <div class="ov-desc">Primary folder used for model + script</div>
+              </div>
+            </div>
+
+            <div class="pl1day-run-panel">
+              <div class="pl1day-run-card">
+                <div class="pl1day-run-icon">🚀</div>
+                <h3>Run GA-WP IEEE13 Simulation</h3>
+                <p>This launches MATLAB, runs <strong>weather_generator_1day</strong>, then executes the model <strong>aIEEE13bus_with_solar_13bus_GA_wp</strong> from <strong>D:\FPY Application_Files</strong>.</p>
+                <button class="btn-run-sim" id="btnRunGAWP" onclick="runGAWPSimulation()">
+                  <span class="btn-run-icon">▶</span> Run GA-WP Simulation
+                </button>
+                <button class="btn-stop-sim" id="btnStopGAWP" onclick="stopSimulation()" style="display:none;">
+                  <span class="btn-run-icon">⏹</span> Stop Simulation
+                </button>
+              </div>
+
+              <div class="pl1day-status-panel" id="gaWpStatusPanel">
+                <div class="pl1day-status-header">
+                  <span class="pl1day-status-dot" id="gaWpStatusDot"></span>
+                  <span class="pl1day-status-label" id="gaWpStatusLabel">Idle</span>
+                </div>
+                <div class="pl1day-status-msg" id="gaWpStatusMsg">No GA-WP simulation running. Click Run to start.</div>
+                <div class="pl1day-status-meta">
+                  <span>Session: <strong id="gaWpSessionId">—</strong></span>
+                  <span>Updated: <strong id="gaWpUpdatedAt">—</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sim-sub-panel" id="ga-wp-run-live">
+            <div class="sim-overview-grid">
+              <div class="sim-overview-card">
+                <div class="ov-icon">🧾</div>
+                <div class="ov-title">Log Lines</div>
+                <div class="ov-value" id="gaWpLogCount">0</div>
+                <div class="ov-desc">MATLAB stdout/stderr lines received</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">📥</div>
+                <div class="ov-title">Data Entries</div>
+                <div class="ov-value" id="gaWpDataCount">0</div>
+                <div class="ov-desc">Live bus measurement rows received</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">🕒</div>
+                <div class="ov-title">Last Update</div>
+                <div class="ov-value" id="gaWpLastUpdate" style="font-size:0.9rem;">—</div>
+                <div class="ov-desc">Most recent data timestamp</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">⚡</div>
+                <div class="ov-title">Avg Slack</div>
+                <div class="ov-value" id="gaWpSlackPower">—</div>
+                <div class="ov-desc">Substation power (kW)</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">🏭</div>
+                <div class="ov-title">Avg Load</div>
+                <div class="ov-value" id="gaWpLoadPower">—</div>
+                <div class="ov-desc">System load (kW)</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">☀️</div>
+                <div class="ov-title">Total PV</div>
+                <div class="ov-value" id="gaWpPVPower">—</div>
+                <div class="ov-desc">Solar generation (kW)</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">🔋</div>
+                <div class="ov-title">System Losses</div>
+                <div class="ov-value" id="gaWpLosses">—</div>
+                <div class="ov-desc">Power losses (kW)</div>
+              </div>
+              <div class="sim-overview-card">
+                <div class="ov-icon">📊</div>
+                <div class="ov-title">PV Penetration</div>
+                <div class="ov-value" id="gaWpPVPen">—</div>
+                <div class="ov-desc">PV share of load</div>
+              </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="sim-results-grid">
+              <div class="result-card">
+                <div class="rc-header"><h4>⚡ Bus Voltage (V)</h4></div>
+                <div class="rc-body" style="height:280px;">
+                  <canvas id="gaWpVoltageChart"></canvas>
+                </div>
+              </div>
+              <div class="result-card">
+                <div class="rc-header"><h4>🔌 Power Flow (kW)</h4></div>
+                <div class="rc-body" style="height:280px;">
+                  <canvas id="gaWpPowerChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="sim-results-grid">
+              <div class="result-card">
+                <div class="rc-header"><h4>☀️ PV Output by Bus (kW)</h4></div>
+                <div class="rc-body" style="height:280px;">
+                  <canvas id="gaWpPVChart"></canvas>
+                </div>
+              </div>
+              <div class="result-card">
+                <div class="rc-header"><h4>🖥️ MATLAB Command Output</h4></div>
+                <div class="rc-body" style="height:280px;">
+                  <div class="sim-data" id="gaWpLiveLog" style="height:100%;overflow:auto;font-family:Consolas,monospace;font-size:0.75rem;white-space:pre-wrap;line-height:1.4;">Waiting for MATLAB output...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bus Measurements Table -->
+            <div class="sim-results-grid" style="grid-template-columns:1fr;">
+              <div class="result-card">
+                <div class="rc-header"><h4>📡 Live Bus Measurements</h4></div>
+                <div class="rc-body table-container" style="max-height:350px;overflow:auto;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Bus</th>
+                        <th>Voltage (V)</th>
+                        <th>Current (A)</th>
+                        <th>Real Power (kW)</th>
+                        <th>PV Power (kW)</th>
+                        <th>Time (s)</th>
+                        <th>Updated</th>
+                      </tr>
+                    </thead>
+                    <tbody id="gaWpLiveTable">
+                      <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-muted);">Waiting for live measurement data from MATLAB...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
       <!-- TAB 5 : SIMULATION HISTORY                                       -->
       <!-- ================================================================ -->
       <div class="sim-tab-panel" id="panel-history">
@@ -2285,6 +2461,19 @@ temperature_profile = [time_seconds temperature];
     let pl1dayPowerChart = null;
     let pl1dayChartsInit = false;
     let pl1dayDataCount = 0;
+    let gaWpLogCount = 0;
+    let gaWpDataCount = 0;
+    let gaWpStartedAt = null;
+    let gaWpSessionId = null;
+    let gaWpLiveRows = [];
+
+    // GA-WP Charts
+    let gaWpVoltageChart = null;
+    let gaWpPowerChart = null;
+    let gaWpPVChart = null;
+    let gaWpChartsInit = false;
+    // GA-WP per-bus last measurement
+    const gaWpBusData = {};
 
     // Per-bus live data store
     const busLiveData = {};
@@ -2313,6 +2502,250 @@ temperature_profile = [time_seconds temperature];
       '671 Yg PQ': '671', '671 D PQ': '671', '675 Y PQ': '675', '675 Yg Z': '675',
       '692 D I': '692', '611 Z': '611', '611Y I': '611'
     };
+
+    function appendGaWpLogLine(line, level = 'info') {
+      const box = document.getElementById('gaWpLiveLog');
+      if (!box) return;
+
+      if (box.textContent.includes('Waiting for MATLAB output...')) box.textContent = '';
+
+      const ts = new Date().toLocaleTimeString();
+      const prefix = level === 'stderr' ? '[ERR]' : (level === 'stdout' ? '[OUT]' : '[LOG]');
+      box.textContent += `${ts} ${prefix} ${line}\n`;
+      box.scrollTop = box.scrollHeight;
+
+      gaWpLogCount++;
+      const c = document.getElementById('gaWpLogCount');
+      if (c) c.textContent = gaWpLogCount;
+      const last = document.getElementById('gaWpLastUpdate');
+      if (last) last.textContent = ts;
+    }
+
+    function addGaWpLiveDataRow(busId, measurements, timestamp) {
+      const tbody = document.getElementById('gaWpLiveTable');
+      if (!tbody) return;
+
+      // Clear placeholder
+      if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
+
+      const m = measurements;
+      const ts = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+      // Store latest per-bus data
+      gaWpBusData[busId] = { ...m, timestamp, ts };
+
+      // Rebuild table from latest per-bus data
+      const busOrder = ['650','632','633','634','645','646','671','675','680','684','611','652','692'];
+      tbody.innerHTML = busOrder.filter(b => gaWpBusData[b]).map(b => {
+        const d = gaWpBusData[b];
+        return `<tr>
+          <td><strong>${b}</strong></td>
+          <td>${d.voltage_V != null ? d.voltage_V.toFixed(1) : '—'}</td>
+          <td>${d.current_A != null ? d.current_A.toFixed(3) : '—'}</td>
+          <td>${d.real_power_kW != null ? d.real_power_kW.toFixed(2) : '—'}</td>
+          <td>${d.pv_power_kW != null ? d.pv_power_kW.toFixed(2) : '—'}</td>
+          <td>${d.time_s != null ? d.time_s.toFixed(4) : '—'}</td>
+          <td>${d.ts}</td>
+        </tr>`;
+      }).join('');
+
+      gaWpDataCount++;
+      const c = document.getElementById('gaWpDataCount');
+      if (c) c.textContent = gaWpDataCount;
+      const last = document.getElementById('gaWpLastUpdate');
+      if (last) last.textContent = ts;
+    }
+
+    function handleGaWpMeasurement(data) {
+      const busId = data.bus_id;
+      const m = data.measurements;
+      if (!m) return;
+
+      // System-level analysis results
+      if (busId === 'SYSTEM') {
+        if (m.avg_slack_power_kW != null) document.getElementById('gaWpSlackPower').textContent = m.avg_slack_power_kW.toFixed(2) + ' kW';
+        if (m.avg_load_power_kW != null) document.getElementById('gaWpLoadPower').textContent = m.avg_load_power_kW.toFixed(2) + ' kW';
+        if (m.avg_pv_power_kW != null) document.getElementById('gaWpPVPower').textContent = m.avg_pv_power_kW.toFixed(2) + ' kW';
+        if (m.avg_system_losses_kW != null) document.getElementById('gaWpLosses').textContent = m.avg_system_losses_kW.toFixed(2) + ' kW';
+        if (m.pv_penetration_percent != null) document.getElementById('gaWpPVPen').textContent = m.pv_penetration_percent.toFixed(2) + '%';
+        return;
+      }
+
+      // Skip WEATHER bus for GA-WP
+      if (busId === 'WEATHER') return;
+
+      // Initialize charts on first data
+      if (!gaWpChartsInit) initGaWpCharts();
+
+      // Update voltage chart
+      const vBuses = ['650', '632', '634', '671', '675'];
+      const vIdx = vBuses.indexOf(busId);
+      if (vIdx >= 0 && gaWpVoltageChart && m.voltage_V != null) {
+        const label = m.time_s != null ? m.time_s.toFixed(3) + 's' : gaWpDataCount.toString();
+        if (gaWpVoltageChart.data.datasets[vIdx].data.length >= gaWpVoltageChart.data.labels.length) {
+          gaWpVoltageChart.data.labels.push(label);
+        }
+        gaWpVoltageChart.data.datasets[vIdx].data.push(m.voltage_V);
+        if (gaWpVoltageChart.data.labels.length > 200) {
+          gaWpVoltageChart.data.labels.shift();
+          gaWpVoltageChart.data.datasets.forEach(ds => ds.data.length > 200 && ds.data.shift());
+        }
+        gaWpVoltageChart.update('none');
+      }
+
+      // Update power chart
+      const pBuses = ['650', '632', '634', '671', '675'];
+      const pIdx = pBuses.indexOf(busId);
+      if (pIdx >= 0 && gaWpPowerChart && m.real_power_kW != null) {
+        const label = m.time_s != null ? m.time_s.toFixed(3) + 's' : gaWpDataCount.toString();
+        if (gaWpPowerChart.data.datasets[pIdx].data.length >= gaWpPowerChart.data.labels.length) {
+          gaWpPowerChart.data.labels.push(label);
+        }
+        gaWpPowerChart.data.datasets[pIdx].data.push(m.real_power_kW);
+        if (gaWpPowerChart.data.labels.length > 200) {
+          gaWpPowerChart.data.labels.shift();
+          gaWpPowerChart.data.datasets.forEach(d => d.data.length > 200 && d.data.shift());
+        }
+        gaWpPowerChart.update('none');
+      }
+
+      // Update PV chart
+      const pvBuses = ['634', '671', '675'];
+      const pvIdx = pvBuses.indexOf(busId);
+      if (pvIdx >= 0 && gaWpPVChart && m.pv_power_kW != null) {
+        const label = m.time_s != null ? m.time_s.toFixed(3) + 's' : gaWpDataCount.toString();
+        if (gaWpPVChart.data.datasets[pvIdx].data.length >= gaWpPVChart.data.labels.length) {
+          gaWpPVChart.data.labels.push(label);
+        }
+        gaWpPVChart.data.datasets[pvIdx].data.push(m.pv_power_kW);
+        if (gaWpPVChart.data.labels.length > 200) {
+          gaWpPVChart.data.labels.shift();
+          gaWpPVChart.data.datasets.forEach(d => d.data.length > 200 && d.data.shift());
+        }
+        gaWpPVChart.update('none');
+      }
+
+      // Update table
+      addGaWpLiveDataRow(busId, m, data.timestamp);
+    }
+
+    function initGaWpCharts() {
+      if (gaWpChartsInit) return;
+      gaWpChartsInit = true;
+
+      const chartOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 15 } },
+          y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10 } } }
+        }
+      };
+
+      const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7'];
+      const vBuses = ['650', '632', '634', '671', '675'];
+      const pBuses = ['650', '632', '634', '671', '675'];
+      const pvBuses = ['634', '671', '675'];
+      const pvColors = ['#f59e0b', '#ef4444', '#a855f7'];
+
+      const vCtx = document.getElementById('gaWpVoltageChart');
+      if (vCtx) {
+        gaWpVoltageChart = new Chart(vCtx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: vBuses.map((b, i) => ({
+              label: 'Bus ' + b,
+              data: [],
+              borderColor: colors[i],
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0.3,
+              pointRadius: 1,
+              borderWidth: 2
+            }))
+          },
+          options: { ...chartOpts, plugins: { ...chartOpts.plugins, title: { display: false } } }
+        });
+      }
+
+      const pCtx = document.getElementById('gaWpPowerChart');
+      if (pCtx) {
+        gaWpPowerChart = new Chart(pCtx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: pBuses.map((b, i) => ({
+              label: 'Bus ' + b + ' (kW)',
+              data: [],
+              borderColor: colors[i],
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0.3,
+              pointRadius: 1,
+              borderWidth: 2
+            }))
+          },
+          options: { ...chartOpts, plugins: { ...chartOpts.plugins, title: { display: false } } }
+        });
+      }
+
+      const pvCtx = document.getElementById('gaWpPVChart');
+      if (pvCtx) {
+        gaWpPVChart = new Chart(pvCtx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: pvBuses.map((b, i) => ({
+              label: 'PV @ Bus ' + b,
+              data: [],
+              borderColor: pvColors[i],
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0.3,
+              pointRadius: 1,
+              borderWidth: 2
+            }))
+          },
+          options: { ...chartOpts, plugins: { ...chartOpts.plugins, title: { display: false } } }
+        });
+      }
+    }
+
+    function resetGaWpLivePanel() {
+      gaWpLogCount = 0;
+      gaWpDataCount = 0;
+      gaWpLiveRows = [];
+      Object.keys(gaWpBusData).forEach(k => delete gaWpBusData[k]);
+
+      const log = document.getElementById('gaWpLiveLog');
+      const table = document.getElementById('gaWpLiveTable');
+      const logCount = document.getElementById('gaWpLogCount');
+      const dataCount = document.getElementById('gaWpDataCount');
+      const last = document.getElementById('gaWpLastUpdate');
+      if (log) log.textContent = 'Waiting for MATLAB output...';
+      if (table) table.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-muted);">Waiting for live measurement data from MATLAB...</td></tr>';
+      if (logCount) logCount.textContent = '0';
+      if (dataCount) dataCount.textContent = '0';
+      if (last) last.textContent = '—';
+
+      // Reset summary cards
+      ['gaWpSlackPower','gaWpLoadPower','gaWpPVPower','gaWpLosses','gaWpPVPen'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '—';
+      });
+
+      // Reset charts
+      [gaWpVoltageChart, gaWpPowerChart, gaWpPVChart].forEach(chart => {
+        if (chart) {
+          chart.data.labels = [];
+          chart.data.datasets.forEach(ds => ds.data = []);
+          chart.update('none');
+        }
+      });
+    }
 
     function initPL1DayCharts() {
       if (pl1dayChartsInit) return;
@@ -2411,6 +2844,15 @@ temperature_profile = [time_seconds temperature];
 
       // Listen for live bus measurements
       pl1daySocket.on('bus-system:measurement', (data) => {
+        const sessionId = data.session_id || '';
+
+        // Route to GA-WP Live Results if this is a GA-WP session
+        if (sessionId.startsWith('ga_wp_') || sessionId.startsWith('ga-wp-')) {
+          handleGaWpMeasurement(data);
+          return;
+        }
+
+        // Otherwise, route to PL-1Day charts
         pl1dayDataCount++;
         document.getElementById('pl1dayDataCount').textContent = pl1dayDataCount;
 
@@ -2498,6 +2940,13 @@ temperature_profile = [time_seconds temperature];
       // Listen for simulation status updates
       pl1daySocket.on('bus-system:status', (data) => {
         updatePL1DayStatus(data.status, data.message, data.session_id, data.timestamp);
+        updateGAWPStatus(data.status, data.message, data.session_id, data.timestamp);
+      });
+
+      pl1daySocket.on('ga-wp:log', (data) => {
+        if (!data || !data.text) return;
+        if (gaWpSessionId && data.session_id && data.session_id !== gaWpSessionId) return;
+        appendGaWpLogLine(data.text, data.level || 'info');
       });
     }
 
@@ -2536,6 +2985,48 @@ temperature_profile = [time_seconds temperature];
       if (status === 'streaming') {
         initPL1DayCharts();
         switchSubTab('pl1day', 'live');
+      }
+    }
+
+    function updateGAWPStatus(status, message, sessionId, timestamp) {
+      const dot = document.getElementById('gaWpStatusDot');
+      const label = document.getElementById('gaWpStatusLabel');
+      const msg = document.getElementById('gaWpStatusMsg');
+      const sid = document.getElementById('gaWpSessionId');
+      const upd = document.getElementById('gaWpUpdatedAt');
+      const btnRun = document.getElementById('btnRunGAWP');
+      const btnStop = document.getElementById('btnStopGAWP');
+
+      if (!dot || !label || !msg || !sid || !upd || !btnRun || !btnStop) return;
+
+      if (sessionId && sessionId.startsWith('ga-wp-')) {
+        gaWpSessionId = sessionId;
+      }
+
+      dot.className = 'pl1day-status-dot ' + (status || 'idle');
+      label.textContent = status || 'Idle';
+      msg.textContent = message || 'No GA-WP simulation running.';
+      if (sessionId) sid.textContent = sessionId;
+      if (timestamp) upd.textContent = new Date(timestamp).toLocaleTimeString();
+
+      if (status === 'running' || status === 'starting' || status === 'streaming' || status === 'processing') {
+        btnRun.disabled = true;
+        btnRun.style.display = 'none';
+        btnStop.style.display = 'inline-flex';
+      } else {
+        btnRun.disabled = false;
+        btnRun.style.display = 'inline-flex';
+        btnStop.style.display = 'none';
+      }
+
+      if (status === 'starting' || status === 'running') {
+        appendGaWpLogLine(message || `GA-WP status: ${status}`, 'info');
+      }
+      if (status === 'error') {
+        appendGaWpLogLine(message || 'GA-WP error', 'stderr');
+      }
+      if (status === 'completed') {
+        appendGaWpLogLine(message || 'GA-WP completed', 'info');
       }
     }
 
@@ -2620,15 +3111,44 @@ temperature_profile = [time_seconds temperature];
       }
     }
 
+    async function runGAWPSimulation() {
+      const btn = document.getElementById('btnRunGAWP');
+      btn.disabled = true;
+
+      resetGaWpLivePanel();
+      gaWpStartedAt = Date.now();
+      gaWpSessionId = null;
+      switchSubTab('ga-wp-run', 'live');
+
+      showToast('Launching MATLAB GA-WP simulation...', 'info');
+      updateGAWPStatus('starting', 'Sending GA-WP run request to server...', null, new Date().toISOString());
+
+      try {
+        const resp = await API.post('/api/bus-system/run-ga-wp', {
+          base_dir: 'D:\\FPY Application_Files'
+        });
+        showToast(resp.message || 'GA-WP simulation launched', 'success');
+        updateGAWPStatus('starting', resp.message || 'MATLAB is launching...', resp.session_id || 'pending', new Date().toISOString());
+        if (resp.session_id) gaWpSessionId = resp.session_id;
+        if (resp.log_file) appendGaWpLogLine(`Diary log: ${resp.log_file}`, 'info');
+      } catch (err) {
+        showToast('Failed to start GA-WP simulation: ' + (err.message || err), 'error');
+        updateGAWPStatus('error', err.message || 'Failed to start GA-WP simulation', null, new Date().toISOString());
+        btn.disabled = false;
+      }
+    }
+
     async function stopSimulation() {
       try {
         const resp = await API.post('/api/bus-system/stop-simulation', {});
         showToast(resp.message || 'Simulation stopped', 'info');
         updatePL1DayStatus('idle', 'Simulation stopped by user', null, new Date().toISOString());
+        updateGAWPStatus('idle', 'Simulation stopped by user', null, new Date().toISOString());
       } catch (err) {
         // Even if stop fails, reset the UI
         showToast('Stop request sent', 'info');
         updatePL1DayStatus('idle', 'Simulation stopped', null, new Date().toISOString());
+        updateGAWPStatus('idle', 'Simulation stopped', null, new Date().toISOString());
       }
     }
 
@@ -2637,8 +3157,25 @@ temperature_profile = [time_seconds temperature];
         const data = await API.get('/api/bus-system/sim-status');
         if (data) {
           updatePL1DayStatus(data.status, data.message, data.session_id, data.updated_at);
+          updateGAWPStatus(data.status, data.message, data.session_id, data.updated_at);
         }
       } catch (e) { /* ignore */ }
+
+      if (gaWpStartedAt) {
+        try {
+          const data = await API.get('/api/matlab/simulations?limit=30');
+          const rows = (data && data.simulations) ? data.simulations : [];
+          rows.reverse().forEach((entry) => {
+            const ts = entry.timestamp ? new Date(entry.timestamp).getTime() : 0;
+            if (!ts || ts < gaWpStartedAt) return;
+            const id = `${entry.id || ''}-${entry.timestamp || ''}`;
+            if (!window.__gaWpSeen) window.__gaWpSeen = new Set();
+            if (window.__gaWpSeen.has(id)) return;
+            window.__gaWpSeen.add(id);
+            addGaWpLiveDataRow(entry);
+          });
+        } catch (_) { /* ignore polling failures */ }
+      }
     }
 
     // Poll status every 5 seconds to catch updates even if Socket.IO misses them
@@ -2675,6 +3212,6 @@ temperature_profile = [time_seconds temperature];
       }
     })();
   </script>
-  <script src="/js/particles.js"></script>
+  <script src="/js/particles.js?v=3"></script>
 </body>
 </html>
