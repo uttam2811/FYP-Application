@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel — FYP Application</title>
+  <title>Admin Panel — FYP Power System</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <div class="beams-bg"></div>
+  <!-- Scan lines overlay -->
+  <div class="scan-lines"></div>
+
   <div class="app-layout">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>� Dashboard <span class="tag">ADMIN</span></h2>
+        <h2>FYP SYSTEM <span class="tag">ADMIN</span></h2>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">Navigation</div>
           <a href="/dashboard" class="nav-link">
-            <span class="icon">📊</span> Dashboard
+            <span class="icon">&#128202;</span> Dashboard
           </a>
           <a href="/admin" class="nav-link active">
-            <span class="icon">⚙️</span> Admin Panel
+            <span class="icon">&#9881;</span> Admin Panel
           </a>
         </div>
       </nav>
@@ -40,7 +42,10 @@
     <!-- Main Content -->
     <main class="main-content">
       <header class="top-header">
-        <h1>Admin Panel</h1>
+        <div class="dashboard-header-meta">
+          <p class="dashboard-eyebrow">Administration</p>
+          <h1>Admin Panel</h1>
+        </div>
         <div class="header-actions">
           <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Add New User</button>
         </div>
@@ -49,27 +54,30 @@
       <div class="page-content">
         <!-- Admin Stats -->
         <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon blue">👥</div>
-            <div class="stat-value" id="statTotalUsers">0</div>
+          <div class="stat-card" data-tilt>
+            <div class="stat-icon blue">&#128100;</div>
+            <div class="stat-value" id="statTotalUsers" data-count>0</div>
             <div class="stat-label">Total Users</div>
+            <div class="stat-shimmer"></div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon green">🛡️</div>
-            <div class="stat-value" id="statAdmins">0</div>
+          <div class="stat-card" data-tilt>
+            <div class="stat-icon green">&#128737;</div>
+            <div class="stat-value" id="statAdmins" data-count>0</div>
             <div class="stat-label">Admin Users</div>
+            <div class="stat-shimmer"></div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon amber">👤</div>
-            <div class="stat-value" id="statViewers">0</div>
+          <div class="stat-card" data-tilt>
+            <div class="stat-icon amber">&#128065;</div>
+            <div class="stat-value" id="statViewers" data-count>0</div>
             <div class="stat-label">Viewer Users</div>
+            <div class="stat-shimmer"></div>
           </div>
         </div>
 
         <!-- Users Table -->
         <div class="card">
           <div class="card-header">
-            <h3>👥 User Management</h3>
+            <h3>&#128101; User Management</h3>
             <button class="btn btn-outline btn-sm" onclick="loadUsers()">Refresh</button>
           </div>
           <div class="card-body table-container">
@@ -86,7 +94,7 @@
                 </tr>
               </thead>
               <tbody id="usersTableBody">
-                <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading...</td></tr>
+                <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-secondary);">Loading...</td></tr>
               </tbody>
             </table>
           </div>
@@ -95,11 +103,11 @@
         <!-- Activity Log -->
         <div class="card">
           <div class="card-header">
-            <h3>📋 Activity Log</h3>
+            <h3>&#128203; Activity Log</h3>
             <button class="btn btn-outline btn-sm" onclick="loadActivity()">Refresh</button>
           </div>
           <div class="card-body" id="activityLog">
-            <p style="color:var(--text-muted);text-align:center;padding:20px;">Loading...</p>
+            <p style="color:var(--text-secondary);text-align:center;padding:20px;">Loading...</p>
           </div>
         </div>
       </div>
@@ -124,8 +132,8 @@
           <label for="newPassword">Password</label>
           <input type="password" id="newPassword" placeholder="Enter password (min 6 chars)" required minlength="6">
         </div>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">
-          ⓘ New users are created with <strong>viewer</strong> role. Admins can promote users to admin from the table below.
+        <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:16px;">
+          &#9432; New users are created with <strong>viewer</strong> role. Admins can promote users to admin from the table below.
         </p>
         <div class="modal-actions">
           <button type="button" class="btn btn-outline btn-sm" onclick="closeAddUser()">Cancel</button>
@@ -136,6 +144,7 @@
   </div>
 
   <script src="/js/app.js"></script>
+  <script src="/js/futuristic.js"></script>
   <script>
     (async () => {
       const user = await Auth.check();
@@ -154,12 +163,31 @@
     async function loadStats() {
       try {
         const data = await API.get('/api/admin/stats');
-        document.getElementById('statTotalUsers').textContent = data.totalUsers;
-        document.getElementById('statAdmins').textContent = data.adminCount;
-        document.getElementById('statViewers').textContent = data.viewerCount;
+        animateCounter('statTotalUsers', data.totalUsers);
+        animateCounter('statAdmins', data.adminCount);
+        animateCounter('statViewers', data.viewerCount);
       } catch (err) {
         console.error('Stats error:', err);
       }
+    }
+
+    function animateCounter(elementId, target) {
+      const element = document.getElementById(elementId);
+      const duration = 2000;
+      const step = target / (duration / 16);
+      let current = 0;
+
+      const update = () => {
+        current += step;
+        if (current < target) {
+          element.textContent = Math.floor(current);
+          requestAnimationFrame(update);
+        } else {
+          element.textContent = target;
+        }
+      };
+
+      update();
     }
 
     async function loadUsers() {
@@ -179,7 +207,7 @@
               ${user.role === 'admin' ? `
                 <button class="btn btn-outline btn-sm" onclick="changeRole(${user.id}, 'viewer', '${user.username}')" title="Demote to viewer">Demote</button>
               ` : `
-                <button class="btn btn-primary btn-sm" onclick="changeRole(${user.id}, 'admin', '${user.username}')" title="Promote to admin">🛡️ Make Admin</button>
+                <button class="btn btn-primary btn-sm" onclick="changeRole(${user.id}, 'admin', '${user.username}')" title="Promote to admin">&#128737; Make Admin</button>
                 <button class="btn btn-outline btn-sm" onclick="toggleUser(${user.id})">${user.is_active ? 'Deactivate' : 'Activate'}</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id}, '${user.username}')">Delete</button>
               `}
@@ -197,18 +225,18 @@
         const container = document.getElementById('activityLog');
 
         if (data.logs.length === 0) {
-          container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">No activity yet</p>';
+          container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:20px;">No activity yet</p>';
           return;
         }
 
         container.innerHTML = data.logs.map(log => `
-          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.875rem;">
+          <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.875rem;">
             <div>
-              <strong>${log.username || 'System'}</strong>
+              <strong style="color:var(--neon-cyan);">${log.username || 'System'}</strong>
               <span style="color:var(--text-muted);margin:0 8px;">—</span>
-              ${log.details || log.action}
+              <span style="color:var(--text-secondary);">${log.details || log.action}</span>
             </div>
-            <span style="color:var(--text-muted);white-space:nowrap;">${timeAgo(log.timestamp)}</span>
+            <span style="color:var(--text-muted);white-space:nowrap;font-family:var(--font-tech);">${timeAgo(log.timestamp)}</span>
           </div>
         `).join('');
       } catch (err) {
@@ -286,8 +314,18 @@
         showToast(err.message, 'error');
       }
     }
+
+    // Close modal on overlay click
+    document.getElementById('addUserModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeAddUser();
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAddUser();
+    });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="/js/particles.js?v=4"></script>
+  <script src="/js/particles.js?v=5"></script>
 </body>
 </html>

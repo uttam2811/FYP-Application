@@ -3,14 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — FYP Application</title>
+  <title>Login — FYP Power System</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Additional futuristic effects */
+    .corner-decoration {
+      position: fixed;
+      width: 100px;
+      height: 100px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .corner-decoration.top-left {
+      top: 20px;
+      left: 20px;
+      border-top: 2px solid rgba(0, 243, 255, 0.3);
+      border-left: 2px solid rgba(0, 243, 255, 0.3);
+    }
+    .corner-decoration.top-right {
+      top: 20px;
+      right: 20px;
+      border-top: 2px solid rgba(255, 0, 255, 0.3);
+      border-right: 2px solid rgba(255, 0, 255, 0.3);
+    }
+    .corner-decoration.bottom-left {
+      bottom: 20px;
+      left: 20px;
+      border-bottom: 2px solid rgba(255, 0, 255, 0.3);
+      border-left: 2px solid rgba(255, 0, 255, 0.3);
+    }
+    .corner-decoration.bottom-right {
+      bottom: 20px;
+      right: 20px;
+      border-bottom: 2px solid rgba(0, 243, 255, 0.3);
+      border-right: 2px solid rgba(0, 243, 255, 0.3);
+    }
+
+    .tech-decoration {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .tech-line {
+      width: 100px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    }
+
+    .tech-text {
+      font-family: var(--font-tech);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+
+    /* Floating particles container */
+    .particles-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+  </style>
 </head>
 <body class="login-page">
+  <!-- Scan lines overlay -->
+  <div class="scan-lines"></div>
+
+  <!-- Corner decorations -->
+  <div class="corner-decoration top-left"></div>
+  <div class="corner-decoration top-right"></div>
+  <div class="corner-decoration bottom-left"></div>
+  <div class="corner-decoration bottom-right"></div>
+
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-logo">FYP SYSTEM</div>
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+    <div class="loading-text">INITIALIZING...</div>
+  </div>
+
+  <!-- Login Container -->
   <div class="login-container">
-    <div class="form auth-form-card">
-      <h1>FYP Application</h1>
-      <p class="subtitle">Dashboard</p>
+    <div class="form auth-form-card" data-tilt>
+      <div class="tilt-card-shine"></div>
+
+      <h1>FYP SYSTEM</h1>
+      <p class="subtitle">Power System Monitoring Dashboard</p>
 
       <div id="alert" class="alert"></div>
 
@@ -20,9 +107,9 @@
           <label for="username">Username</label>
         </div>
         <div class="inputForm">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20" fill="none" aria-hidden="true">
-            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M16 7c3.866 0 7 3.134 7 7s-3.134 7-7 7-7-3.134-7-7 3.134-7 7-7Z"></path>
-            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M7 26c1.8-3.2 5.2-5 9-5s7.2 1.8 9 5"></path>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2">
+            <circle cx="16" cy="12" r="7" fill="none" stroke-linecap="round"/>
+            <path d="M7 26c1.8-3.2 5.2-5 9-5s7.2 1.8 9 5" stroke-linecap="round"/>
           </svg>
           <input type="text" id="username" class="input" placeholder="Enter your username" required autocomplete="username">
         </div>
@@ -31,21 +118,23 @@
           <label for="password">Password</label>
         </div>
         <div class="inputForm">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20" fill="none" aria-hidden="true">
-            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M10 14V10a6 6 0 0 1 12 0v4"></path>
-            <rect width="18" height="12" x="7" y="14" stroke-width="2" stroke="#151717" rx="2"></rect>
-            <path stroke-linecap="round" stroke-width="2" stroke="#151717" d="M16 19v2"></path>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2">
+            <path d="M10 14V10a6 6 0 0 1 12 0v4" stroke-linecap="round"/>
+            <rect x="7" y="14" width="18" height="12" rx="2" fill="none"/>
+            <path d="M16 19v2" stroke-linecap="round"/>
           </svg>
           <input type="password" id="password" class="input" placeholder="Enter your password" required autocomplete="current-password">
         </div>
 
-        <button type="submit" class="button-submit" id="loginBtn">Sign In</button>
+        <button type="submit" class="button-submit" id="loginBtn">
+          <span>AUTHENTICATE</span>
+        </button>
       </form>
 
       <!-- Step 2: OTP Verification -->
       <form id="otpForm" style="display:none;">
         <div class="otp-info">
-          <div class="otp-icon">📧</div>
+          <div class="otp-icon">&#128231;</div>
           <p>A verification code has been sent to</p>
           <p class="otp-email" id="otpEmail">***@email.com</p>
         </div>
@@ -54,36 +143,51 @@
           <label for="otpCode">OTP Code</label>
         </div>
         <div class="inputForm">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20" fill="none" aria-hidden="true">
-            <path d="M4 12h16M12 4v16" stroke="#151717" stroke-width="2" stroke-linecap="round"></path>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2">
+            <path d="M4 12h16M12 4v16" stroke-linecap="round"/>
           </svg>
           <input type="text" id="otpCode" class="input otp-code-input" placeholder="Enter 6-digit OTP" required maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" inputmode="numeric">
         </div>
 
-        <button type="submit" class="button-submit" id="verifyBtn">Verify & Sign In</button>
+        <button type="submit" class="button-submit" id="verifyBtn">
+          <span>VERIFY</span>
+        </button>
 
         <div class="otp-actions">
           <button type="button" class="btn-link" id="resendOtp" onclick="resendLoginOTP()">Resend OTP</button>
-          <span class="separator">•</span>
-          <button type="button" class="btn-link" onclick="backToLogin()">Back to Login</button>
+          <span class="separator">&#8226;</span>
+          <button type="button" class="btn-link" onclick="backToLogin()">Back</button>
         </div>
 
         <div id="otpTimer" class="otp-timer">Code expires in <span id="countdown">5:00</span></div>
       </form>
 
       <div class="register-link" id="registerLink">
-        <p class="p">Don't have an account? <a class="span" href="/register">Create one</a></p>
+        <p class="p">Don't have an account? <a class="span" href="/register">Register</a></p>
       </div>
     </div>
   </div>
 
+  <!-- Tech decoration -->
+  <div class="tech-decoration">
+    <div class="tech-line"></div>
+    <div class="tech-text">System v2.0</div>
+    <div class="tech-line"></div>
+  </div>
+
   <script src="/js/app.js"></script>
+  <script src="/js/futuristic.js"></script>
   <script>
+    // Hide loading screen after animation
+    setTimeout(() => {
+      document.getElementById('loadingScreen').classList.add('hidden');
+    }, 2500);
+
     let currentUsername = '';
     let countdownInterval = null;
 
     function setActionButtonText(button, text) {
-      button.textContent = text;
+      button.querySelector('span').textContent = text;
     }
 
     // If already logged in, redirect
@@ -103,7 +207,7 @@
       alert.className = 'alert';
       alert.style.display = 'none';
       btn.disabled = true;
-      setActionButtonText(btn, 'Verifying...');
+      setActionButtonText(btn, 'AUTHENTICATING...');
 
       try {
         const res = await API.post('/api/auth/login', { username, password });
@@ -135,7 +239,7 @@
         alert.style.display = 'block';
       } finally {
         btn.disabled = false;
-        setActionButtonText(btn, 'Sign In');
+        setActionButtonText(btn, 'AUTHENTICATE');
       }
     });
 
@@ -156,13 +260,13 @@
       alert.className = 'alert';
       alert.style.display = 'none';
       btn.disabled = true;
-      setActionButtonText(btn, 'Verifying OTP...');
+      setActionButtonText(btn, 'VERIFYING...');
 
       try {
         await API.post('/api/auth/verify-login', { username: currentUsername, otp });
         clearInterval(countdownInterval);
         alert.className = 'alert alert-success';
-        alert.textContent = 'Login successful! Redirecting...';
+        alert.textContent = 'Access granted! Redirecting...';
         alert.style.display = 'block';
         setTimeout(() => window.location.href = '/dashboard', 500);
       } catch (err) {
@@ -170,7 +274,7 @@
         alert.textContent = err.message;
         alert.style.display = 'block';
         btn.disabled = false;
-        setActionButtonText(btn, 'Verify & Sign In');
+        setActionButtonText(btn, 'VERIFY');
       }
     });
 
@@ -222,12 +326,12 @@
         if (timeLeft <= 0) {
           clearInterval(countdownInterval);
           timerEl.textContent = 'Expired';
-          document.getElementById('otpTimer').style.color = 'var(--danger)';
+          document.getElementById('otpTimer').style.color = 'var(--neon-orange)';
         }
       }, 1000);
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="/js/particles.js?v=4"></script>
+  <script src="/js/particles.js?v=5"></script>
 </body>
 </html>

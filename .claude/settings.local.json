@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npm start:*)",
+      "Bash(start http://localhost:3000)",
+      "Bash(sleep 2 && curl -s http://localhost:3000/api/auth/me)",
+      "Bash(git add:*)"
+    ]
+  }
+}
