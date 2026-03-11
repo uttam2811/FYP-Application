@@ -1,364 +1,261 @@
 /**
- * Antigravity.google–style particle animation
- * Blue confetti: dashes, dots, tiny lines scattered across a white page
- * Organic simplex-noise drift + cursor push
+ * Antigravity background — multicolor particles (antigravity.google style)
+ * Vanilla Three.js — per-instance colors, ring formation around cursor
  */
 (function () {
   'use strict';
 
-  /* ═══════ Simplex Noise 3D ═══════ */
-  const F3 = 1 / 3, G3 = 1 / 6;
-  const grad3 = [
-    [1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],
-    [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
-    [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]
-  ];
-  const perm = new Uint8Array(512);
-  (function () {
-    const p = [];
-    for (let i = 0; i < 256; i++) p[i] = i;
-    for (let i = 255; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [p[i], p[j]] = [p[j], p[i]];
-    }
-    for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
-  })();
-  function snoise3(x, y, z) {
-    let s = (x + y + z) * F3;
-    let i = Math.floor(x + s), j = Math.floor(y + s), k = Math.floor(z + s);
-    let t = (i + j + k) * G3;
-    let x0 = x - (i - t), y0 = y - (j - t), z0 = z - (k - t);
-    let i1, j1, k1, i2, j2, k2;
-    if (x0 >= y0) {
-      if (y0 >= z0) { i1=1;j1=0;k1=0;i2=1;j2=1;k2=0; }
-      else if (x0 >= z0) { i1=1;j1=0;k1=0;i2=1;j2=0;k2=1; }
-      else { i1=0;j1=0;k1=1;i2=1;j2=0;k2=1; }
-    } else {
-      if (y0 < z0) { i1=0;j1=0;k1=1;i2=0;j2=1;k2=1; }
-      else if (x0 < z0) { i1=0;j1=1;k1=0;i2=0;j2=1;k2=1; }
-      else { i1=0;j1=1;k1=0;i2=1;j2=1;k2=0; }
-    }
-    let x1 = x0 - i1 + G3, y1 = y0 - j1 + G3, z1 = z0 - k1 + G3;
-    let x2 = x0 - i2 + 2*G3, y2 = y0 - j2 + 2*G3, z2 = z0 - k2 + 2*G3;
-    let x3 = x0 - 1 + 0.5, y3 = y0 - 1 + 0.5, z3 = z0 - 1 + 0.5;
-    i &= 255; j &= 255; k &= 255;
-    let n0=0, n1=0, n2=0, n3=0;
-    let t0 = 0.6 - x0*x0 - y0*y0 - z0*z0;
-    if (t0>0){t0*=t0;let g=grad3[perm[i+perm[j+perm[k]]]%12];n0=t0*t0*(g[0]*x0+g[1]*y0+g[2]*z0);}
-    let t1 = 0.6 - x1*x1 - y1*y1 - z1*z1;
-    if (t1>0){t1*=t1;let g=grad3[perm[i+i1+perm[j+j1+perm[k+k1]]]%12];n1=t1*t1*(g[0]*x1+g[1]*y1+g[2]*z1);}
-    let t2 = 0.6 - x2*x2 - y2*y2 - z2*z2;
-    if (t2>0){t2*=t2;let g=grad3[perm[i+i2+perm[j+j2+perm[k+k2]]]%12];n2=t2*t2*(g[0]*x2+g[1]*y2+g[2]*z2);}
-    let t3 = 0.6 - x3*x3 - y3*y3 - z3*z3;
-    if (t3>0){t3*=t3;let g=grad3[perm[i+1+perm[j+1+perm[k+1]]]%12];n3=t3*t3*(g[0]*x3+g[1]*y3+g[2]*z3);}
-    return 32*(n0+n1+n2+n3);
+  if (typeof THREE === 'undefined') {
+    console.warn('Three.js not loaded — skipping Antigravity animation');
+    return;
   }
 
-  /* ═══════ Canvas ═══════ */
-  const canvas = document.createElement('canvas');
-  canvas.id = 'particleCanvas';
-  canvas.style.cssText =
+  /* ═══════ Multicolor palette (antigravity.google) ═══════ */
+  const PALETTE = [
+    '#4285F4', '#4285F4', '#4285F4',           // Google blue (weighted)
+    '#EA4335', '#EA4335',                        // Google red
+    '#FBBC04', '#FBBC04',                        // Google yellow
+    '#34A853', '#34A853',                        // Google green
+    '#1a73e8', '#1967d2', '#185abc',             // deeper blues
+    '#7c3aed', '#8b5cf6', '#a855f7',            // violet/purple
+    '#ec4899', '#f472b6',                        // pink
+    '#f97316', '#fb923c',                        // orange
+    '#14b8a6', '#0d9488',                        // teal
+    '#0ea5e9',                                   // sky
+  ];
+
+  /* ═══════ Config ═══════ */
+  const CFG = {
+    count: 400,
+    magnetRadius: 8,
+    ringRadius: 8,
+    waveSpeed: 0.4,
+    waveAmplitude: 1.2,
+    particleSize: 1.6,
+    lerpSpeed: 0.05,
+    autoAnimate: true,
+    particleVariance: 1,
+    rotationSpeed: 0,
+    depthFactor: 1,
+    pulseSpeed: 3,
+    fieldStrength: 10
+  };
+
+  /* ═══════ Container ═══════ */
+  const container = document.createElement('div');
+  container.id = 'antigravity-bg';
+  container.style.cssText =
     'position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;';
-  document.body.prepend(canvas);
-  const ctx = canvas.getContext('2d');
+  document.body.prepend(container);
 
-  let W, H, dpr;
-  let particles = [];
-  let mouse = { x: -9999, y: -9999, px: -9999, py: -9999, vx: 0, vy: 0, active: false };
-  let animId, time = 0;
+  /* ═══════ Scene / Camera / Renderer ═══════ */
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(
+    35,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  camera.position.z = 50;
 
-  /* ── Detect light/dark ── */
-  function isLightPage() {
-    const bg = getComputedStyle(document.body).backgroundColor;
-    if (!bg || bg === 'transparent') return false;
-    const m = bg.match(/\d+/g);
-    if (!m) return false;
-    return (parseInt(m[0])*299 + parseInt(m[1])*587 + parseInt(m[2])*114) / 1000 > 128;
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+  container.appendChild(renderer.domElement);
+
+  /* ═══════ Mixed geometries for variety ═══════ */
+  const geoCapsule = new THREE.CapsuleGeometry(0.08, 0.35, 4, 8);
+  const geoSphere  = new THREE.SphereGeometry(0.15, 12, 12);
+  const geoBox     = new THREE.BoxGeometry(0.22, 0.22, 0.22);
+
+  /* We use separate InstancedMesh per shape for true variety */
+  const countCap = Math.floor(CFG.count * 0.5);
+  const countSph = Math.floor(CFG.count * 0.3);
+  const countBox = CFG.count - countCap - countSph;
+
+  const matCap = new THREE.MeshBasicMaterial();
+  const matSph = new THREE.MeshBasicMaterial();
+  const matBox = new THREE.MeshBasicMaterial();
+
+  const meshCap = new THREE.InstancedMesh(geoCapsule, matCap, countCap);
+  const meshSph = new THREE.InstancedMesh(geoSphere, matSph, countSph);
+  const meshBox = new THREE.InstancedMesh(geoBox, matBox, countBox);
+
+  scene.add(meshCap, meshSph, meshBox);
+
+  /* Build flat list so animation loop is simple */
+  const meshes = [];
+  for (let i = 0; i < countCap; i++) meshes.push({ mesh: meshCap, idx: i });
+  for (let i = 0; i < countSph; i++) meshes.push({ mesh: meshSph, idx: i });
+  for (let i = 0; i < countBox; i++) meshes.push({ mesh: meshBox, idx: i });
+
+  /* Assign per-instance colors */
+  const tmpColor = new THREE.Color();
+  meshes.forEach(function (entry) {
+    tmpColor.set(PALETTE[Math.floor(Math.random() * PALETTE.length)]);
+    entry.mesh.setColorAt(entry.idx, tmpColor);
+  });
+  meshCap.instanceColor.needsUpdate = true;
+  meshSph.instanceColor.needsUpdate = true;
+  meshBox.instanceColor.needsUpdate = true;
+
+  const dummy = new THREE.Object3D();
+
+  /* ═══════ Viewport helper ═══════ */
+  function getViewport() {
+    const vFOV = (camera.fov * Math.PI) / 180;
+    const h = 2 * Math.tan(vFOV / 2) * camera.position.z;
+    return { width: h * camera.aspect, height: h };
   }
-  let lightMode = false;
 
-  /* ═══════ MULTICOLOR palette (antigravity.google exact match) ═══════ */
-  /* Base: blue-heavy with purple, pink, orange, teal, gold scattered in */
-  const BLUES_LIGHT = [
-    '#2563eb', '#3b82f6', '#1d4ed8', '#60a5fa',     // blues
-    '#4f46e5', '#6366f1', '#4338ca',                 // indigo
-    '#7c3aed', '#8b5cf6',                             // violet
-    '#a855f7', '#9333ea',                              // purple
-    '#ec4899', '#f472b6',                              // pink
-    '#f43f5e', '#fb7185',                              // rose/red
-    '#f59e0b', '#fbbf24',                              // amber/gold
-    '#f97316', '#fb923c',                              // orange
-    '#14b8a6', '#0d9488',                              // teal
-    '#0ea5e9', '#0284c7',                              // sky
-  ];
-  const BLUES_DARK = [
-    '#60a5fa', '#93c5fd', '#3b82f6', '#818cf8',
-    '#a5b4fc', '#c084fc', '#f9a8d4', '#fb923c',
-    '#34d399', '#fbbf24', '#bfdbfe', '#f472b6',
-  ];
+  /* ═══════ Mouse state ═══════ */
+  const lastMousePos = { x: 0, y: 0 };
+  let lastMouseMoveTime = 0;
+  const virtualMouse = { x: 0, y: 0 };
+  const pointer = { x: 0, y: 0 };
 
-  /* Colors near cursor — even brighter / warmer burst */
-  const CURSOR_COLORS_LIGHT = [
-    '#ec4899', '#f43f5e', '#f59e0b', '#f97316',
-    '#a855f7', '#7c3aed', '#10b981', '#14b8a6',
-    '#fb7185', '#fbbf24', '#6366f1', '#0ea5e9',
-  ];
-  const CURSOR_COLORS_DARK = [
-    '#f472b6', '#fb923c', '#fbbf24', '#a78bfa',
-    '#c084fc', '#34d399', '#818cf8', '#93c5fd',
-  ];
+  /* ═══════ Particles data ═══════ */
+  const particles = [];
 
-  /* ═══════ Shapes — dashes, dots, tiny lines ═══════ */
-  // Weighted: mostly dashes + dots (matches the screenshot exactly)
-  const SHAPES = [
-    'dash','dash','dash','dash','dash',
-    'dot','dot','dot',
-    'tinyline','tinyline',
-    'square',
-  ];
+  function initParticles() {
+    particles.length = 0;
+    const vp = getViewport();
+    for (let i = 0; i < CFG.count; i++) {
+      const x = (Math.random() - 0.5) * vp.width;
+      const y = (Math.random() - 0.5) * vp.height;
+      const z = (Math.random() - 0.5) * 20;
+      particles.push({
+        t: Math.random() * 100,
+        speed: 0.01 + Math.random() / 200,
+        mx: x, my: y, mz: z,
+        cx: x, cy: y, cz: z,
+        randomRadiusOffset: (Math.random() - 0.5) * 2
+      });
+    }
+  }
 
-  const rand = (a,b) => Math.random()*(b-a)+a;
-  const pick = a => a[Math.floor(Math.random()*a.length)];
-  const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
-  const TAU = Math.PI * 2;
+  initParticles();
 
-  /* Particle count — denser for brighter field */
-  const COUNT = 960;
+  /* ═══════ Clock & loop ═══════ */
+  const clock = new THREE.Clock();
+  let animId;
 
-  /* ═══════ Create particle ═══════ */
-  function create(scatter) {
-    const palette = lightMode ? BLUES_LIGHT : BLUES_DARK;
-    const color = pick(palette);
-    const shape = pick(SHAPES);
+  function animate() {
+    animId = requestAnimationFrame(animate);
 
-    /* Size per shape */
-    let w, h;
-    switch (shape) {
-      case 'dash':     w = rand(6, 16); h = rand(1.8, 3.4); break;
-      case 'tinyline': w = rand(4, 9);  h = rand(1.1, 1.9); break;
-      case 'dot':      w = h = rand(2, 4.2);                 break;
-      case 'square':   w = h = rand(2.5, 5);                 break;
+    const elapsed = clock.getElapsedTime();
+    const vp = getViewport();
+
+    /* ── Smooth mouse target ── */
+    const mouseDist = Math.hypot(
+      pointer.x - lastMousePos.x,
+      pointer.y - lastMousePos.y
+    );
+    if (mouseDist > 0.001) {
+      lastMouseMoveTime = Date.now();
+      lastMousePos.x = pointer.x;
+      lastMousePos.y = pointer.y;
     }
 
-    /* Position */
-    let x, y;
-    if (scatter) {
-      x = rand(0, W);
-      y = rand(0, H);
-    } else {
-      // respawn from edges
-      const side = Math.random();
-      if (side < 0.5)      { x = rand(0, W);      y = H + rand(10,50); }
-      else if (side < 0.75){ x = rand(-50, -10);   y = rand(0, H); }
-      else                 { x = rand(W+10, W+50); y = rand(0, H); }
+    let destX = (pointer.x * vp.width) / 2;
+    let destY = (pointer.y * vp.height) / 2;
+
+    if (CFG.autoAnimate && Date.now() - lastMouseMoveTime > 2000) {
+      destX = Math.sin(elapsed * 0.5) * (vp.width / 4);
+      destY = Math.cos(elapsed) * (vp.height / 4);
     }
 
-    /* Opacity — brighter baseline */
-    const alpha = lightMode ? rand(0.45, 0.95) : rand(0.35, 0.85);
+    virtualMouse.x += (destX - virtualMouse.x) * 0.05;
+    virtualMouse.y += (destY - virtualMouse.y) * 0.05;
 
-    return {
-      x, y,
-      hx: x, hy: y,
-      shape, color, baseColor: color, w, h,
-      angle: rand(0, TAU),
-      spin: rand(-0.003, 0.003),
-      // noise seeds
-      sx: rand(0, 300),
-      sy: rand(0, 300),
-      // cursor-imparted velocity
-      vx: 0, vy: 0,
-      // drift direction (slow upward)
-      driftY: -rand(0.08, 0.25),
-      driftX: rand(-0.06, 0.06),
-      // alpha
-      alpha, baseAlpha: alpha,
-      fade: scatter ? rand(0.5, 1) : 0,
-      // cursor proximity (0 = far, 1 = on cursor)
-      cursorInfluence: 0,
-    };
-  }
+    const targetX = virtualMouse.x;
+    const targetY = virtualMouse.y;
+    const globalRotation = elapsed * CFG.rotationSpeed;
 
-  /* ═══════ Resize ═══════ */
-  function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  /* ═══════ Init ═══════ */
-  function init() {
-    resize();
-    lightMode = isLightPage();
-    particles = [];
-    for (let i = 0; i < COUNT; i++) particles.push(create(true));
-  }
-
-  /* ═══════ Draw one particle ═══════ */
-  function drawParticle(p) {
-    const visBoost = 1 + p.cursorInfluence * 0.45;
-    const a = clamp(p.alpha * p.fade * visBoost, 0, 1);
-    if (a < 0.008) return;
-
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle);
-    ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 2 + p.cursorInfluence * 7;
-
-    switch (p.shape) {
-      case 'dash':
-      case 'tinyline': {
-        // Rounded rectangle
-        const hw = p.w / 2, hh = p.h / 2;
-        const r = Math.min(hh, 1.5);
-        ctx.beginPath();
-        ctx.moveTo(-hw + r, -hh);
-        ctx.lineTo(hw - r, -hh);
-        ctx.quadraticCurveTo(hw, -hh, hw, -hh + r);
-        ctx.lineTo(hw, hh - r);
-        ctx.quadraticCurveTo(hw, hh, hw - r, hh);
-        ctx.lineTo(-hw + r, hh);
-        ctx.quadraticCurveTo(-hw, hh, -hw, hh - r);
-        ctx.lineTo(-hw, -hh + r);
-        ctx.quadraticCurveTo(-hw, -hh, -hw + r, -hh);
-        ctx.closePath();
-        ctx.fill();
-        break;
-      }
-      case 'dot': {
-        ctx.beginPath();
-        ctx.arc(0, 0, p.w / 2, 0, TAU);
-        ctx.fill();
-        break;
-      }
-      case 'square': {
-        const s = p.w / 2;
-        ctx.fillRect(-s, -s, p.w, p.w);
-        break;
-      }
-    }
-    ctx.restore();
-  }
-
-  /* ═══════ Main loop ═══════ */
-  function loop() {
-    time += 0.006;
-    ctx.clearRect(0, 0, W, H);
-
-    /* Track cursor velocity */
-    mouse.vx = (mouse.x - mouse.px) * 0.6;
-    mouse.vy = (mouse.y - mouse.py) * 0.6;
-    mouse.px = mouse.x;
-    mouse.py = mouse.y;
-
-    const mx = mouse.x;
-    const my = mouse.y;
-    const mActive = mouse.active;
-    const mvx = mouse.vx;
-    const mvy = mouse.vy;
-    const cursorR = 300;
-    const cursorRSq = cursorR * cursorR;
-    const cursorPalette = lightMode ? CURSOR_COLORS_LIGHT : CURSOR_COLORS_DARK;
-    const basePalette   = lightMode ? BLUES_LIGHT : BLUES_DARK;
-
-    for (let i = particles.length - 1; i >= 0; i--) {
+    /* ── Update each particle ── */
+    for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
+      const entry = meshes[i];
+      p.t += p.speed / 2;
 
-      /* ── Noise-based organic drift ── */
-      const noiseMult = 1 + p.cursorInfluence * 5;
-      const n1 = snoise3(p.sx * 3, p.sy * 3, time * 0.25 + 50) * 0.28 * noiseMult;
-      const n2 = snoise3(p.sx * 3, p.sy * 3, time * 0.25) * 0.28 * noiseMult;
-      const n3 = snoise3(p.sx * 0.4, p.sy * 0.4, time * 0.12 + 30) * 0.65;
-      const n4 = snoise3(p.sx * 0.4, p.sy * 0.4, time * 0.12 + 70) * 0.65;
+      const projFactor = 1 - p.cz / 50;
+      const ptX = targetX * projFactor;
+      const ptY = targetY * projFactor;
 
-      p.x += p.driftX + n1 + n3 + p.vx;
-      p.y += p.driftY + n2 + n4 + p.vy;
-      p.angle += p.spin;
+      const dx = p.mx - ptX;
+      const dy = p.my - ptY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
 
-      /* ── Cursor interaction ── */
-      if (mActive) {
-        const dx = p.x - mx;
-        const dy = p.y - my;
-        const dSq = dx * dx + dy * dy;
-        if (dSq < cursorRSq && dSq > 1) {
-          const d = Math.sqrt(dSq);
-          const proximity = 1 - d / cursorR;
-          const strength  = proximity * proximity;
+      var tpx = p.mx;
+      var tpy = p.my;
+      var tpz = p.mz * CFG.depthFactor;
 
-          /* Strong sweep drag along cursor direction */
-          p.vx += mvx * strength * 0.7;
-          p.vy += mvy * strength * 0.7;
+      if (dist < CFG.magnetRadius) {
+        const angle = Math.atan2(dy, dx) + globalRotation;
+        const wave =
+          Math.sin(p.t * CFG.waveSpeed + angle) * 0.5 * CFG.waveAmplitude;
+        const deviation =
+          p.randomRadiusOffset * (5 / (CFG.fieldStrength + 0.1));
+        const r = CFG.ringRadius + wave + deviation;
 
-          /* Also gently push outward from cursor center */
-          const pushF = strength * 0.3;
-          p.vx += (dx / d) * pushF;
-          p.vy += (dy / d) * pushF;
-
-          /* Dramatic spin */
-          p.spin += strength * 0.008 * (Math.random() > 0.5 ? 1 : -1);
-
-          /* Fast color & liveliness ramp-up */
-          p.cursorInfluence = Math.min(1, p.cursorInfluence + strength * 0.45);
-        } else {
-          /* Very slow fade-back so color lingers long after cursor passes */
-          p.cursorInfluence *= 0.99;
-        }
-      } else {
-        p.cursorInfluence *= 0.99;
+        tpx = ptX + r * Math.cos(angle);
+        tpy = ptY + r * Math.sin(angle);
+        tpz =
+          p.mz * CFG.depthFactor +
+          Math.sin(p.t) * CFG.waveAmplitude * CFG.depthFactor;
       }
 
-      /* ── Color shift (near-instant trigger, slow reset) ── */
-      if (p.cursorInfluence > 0.02) {
-        const ci = Math.floor(p.sx * 100 + p.cursorInfluence * 9) % cursorPalette.length;
-        p.color = cursorPalette[ci];
-      } else {
-        p.color = p.baseColor;
-      }
+      p.cx += (tpx - p.cx) * CFG.lerpSpeed;
+      p.cy += (tpy - p.cy) * CFG.lerpSpeed;
+      p.cz += (tpz - p.cz) * CFG.lerpSpeed;
 
-      /* Dampen */
-      p.vx *= 0.94;
-      p.vy *= 0.94;
+      dummy.position.set(p.cx, p.cy, p.cz);
+      dummy.lookAt(ptX, ptY, p.cz);
+      dummy.rotateX(Math.PI / 2);
 
-      /* ── Recycle off-screen ── */
-      if (p.y < -60 || p.x < -60 || p.x > W + 60) {
-        particles[i] = create(false);
-        continue;
-      }
+      const distToMouse = Math.hypot(p.cx - ptX, p.cy - ptY);
+      const distFromRing = Math.abs(distToMouse - CFG.ringRadius);
+      var sf = Math.max(0, Math.min(1, 1 - distFromRing / 10));
 
-      /* ── Fade in ── */
-      if (p.fade < 1) p.fade = Math.min(1, p.fade + 0.014);
+      const finalScale =
+        sf *
+        (0.8 + Math.sin(p.t * CFG.pulseSpeed) * 0.2 * CFG.particleVariance) *
+        CFG.particleSize;
+      dummy.scale.set(finalScale, finalScale, finalScale);
 
-      /* ── Shimmer ── */
-      p.alpha = p.baseAlpha + Math.sin(time * 2.5 + p.sx * 40) * 0.08;
-
-      drawParticle(p);
+      dummy.updateMatrix();
+      entry.mesh.setMatrixAt(entry.idx, dummy.matrix);
     }
 
-    animId = requestAnimationFrame(loop);
+    meshCap.instanceMatrix.needsUpdate = true;
+    meshSph.instanceMatrix.needsUpdate = true;
+    meshBox.instanceMatrix.needsUpdate = true;
+    renderer.render(scene, camera);
   }
 
   /* ═══════ Events ═══════ */
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
   document.addEventListener('mousemove', function (e) {
-    mouse.x = e.clientX; mouse.y = e.clientY;
-    mouse.active = true;
+    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
   });
-  document.addEventListener('mouseleave', function () {
-    mouse.active = false; mouse.x = mouse.y = -9999;
-  });
+
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) cancelAnimationFrame(animId);
-    else animId = requestAnimationFrame(loop);
+    if (document.hidden) {
+      cancelAnimationFrame(animId);
+      clock.stop();
+    } else {
+      clock.start();
+      animId = requestAnimationFrame(animate);
+    }
   });
 
   /* ═══════ Boot ═══════ */
-  function boot() { init(); loop(); }
-  if (document.readyState === 'loading')
-    document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+  animate();
 })();

@@ -33,18 +33,6 @@ function getDb() {
     `);
 
     db.run(`
-      CREATE TABLE IF NOT EXISTS simulation_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        simulation_name TEXT NOT NULL,
-        source TEXT NOT NULL DEFAULT 'api',
-        file_name TEXT,
-        data TEXT NOT NULL,
-        metadata TEXT,
-        timestamp TEXT DEFAULT (datetime('now'))
-      )
-    `);
-
-    db.run(`
       CREATE TABLE IF NOT EXISTS activity_log (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
@@ -52,16 +40,6 @@ function getDb() {
         details TEXT,
         timestamp TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    `);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS bus_system_data (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_id TEXT NOT NULL,
-        category TEXT NOT NULL,
-        data TEXT NOT NULL,
-        timestamp TEXT DEFAULT (datetime('now'))
       )
     `);
 

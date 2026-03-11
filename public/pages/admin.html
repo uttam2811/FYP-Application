@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel — MATLAB Monitor</title>
+  <title>Admin Panel — FYP Application</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -12,19 +12,13 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>📡 MATLAB Monitor <span class="tag">LIVE</span></h2>
+        <h2>� Dashboard <span class="tag">ADMIN</span></h2>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">Navigation</div>
           <a href="/dashboard" class="nav-link">
             <span class="icon">📊</span> Dashboard
-          </a>
-          <a href="/bus-system" class="nav-link">
-            <span class="icon">🔌</span> IEEE 13 Bus
-          </a>
-          <a href="/simulations" class="nav-link">
-            <span class="icon">⚡</span> Simulations
           </a>
           <a href="/admin" class="nav-link active">
             <span class="icon">⚙️</span> Admin Panel
@@ -49,7 +43,6 @@
         <h1>Admin Panel</h1>
         <div class="header-actions">
           <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Add New User</button>
-          <button class="btn btn-danger btn-sm" onclick="clearAllSimulations()">Clear All Simulations</button>
         </div>
       </header>
 
@@ -70,11 +63,6 @@
             <div class="stat-icon amber">👤</div>
             <div class="stat-value" id="statViewers">0</div>
             <div class="stat-label">Viewer Users</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon teal">📊</div>
-            <div class="stat-value" id="statSimCount">0</div>
-            <div class="stat-label">Total Simulations</div>
           </div>
         </div>
 
@@ -169,7 +157,6 @@
         document.getElementById('statTotalUsers').textContent = data.totalUsers;
         document.getElementById('statAdmins').textContent = data.adminCount;
         document.getElementById('statViewers').textContent = data.viewerCount;
-        document.getElementById('statSimCount').textContent = data.totalSimulations;
       } catch (err) {
         console.error('Stats error:', err);
       }
@@ -285,18 +272,6 @@
       }
     }
 
-    // Clear all simulation data
-    async function clearAllSimulations() {
-      if (!confirm('This will permanently delete ALL simulation data. Are you sure?')) return;
-      try {
-        await API.delete('/api/admin/simulations/clear');
-        showToast('All simulation data cleared', 'success');
-        loadStats();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
-    }
-
     // Change user role (promote/demote)
     async function changeRole(id, newRole, username) {
       const action = newRole === 'admin' ? 'promote' : 'demote';
@@ -312,6 +287,7 @@
       }
     }
   </script>
-  <script src="/js/particles.js?v=3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="/js/particles.js?v=4"></script>
 </body>
 </html>

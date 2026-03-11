@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — MATLAB Monitor</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="/css/styles.css">
-  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body class="dashboard-page">
   <div class="beams-bg"></div>
@@ -16,19 +15,13 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>📡 MATLAB Monitor <span class="tag">LIVE</span></h2>
+        <h2>� Dashboard</h2>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">Navigation</div>
           <a href="/dashboard" class="nav-link active">
             <span class="icon">📊</span> Dashboard
-          </a>
-          <a href="/bus-system" class="nav-link">
-            <span class="icon">🔌</span> IEEE 13 Bus
-          </a>
-          <a href="/simulations" class="nav-link">
-            <span class="icon">⚡</span> Simulations
           </a>
           <a href="/admin" class="nav-link" id="adminLink" style="display:none;">
             <span class="icon">⚙️</span> Admin Panel
@@ -57,11 +50,7 @@
           <h1>Dashboard</h1>
         </div>
         <div class="header-actions">
-          <span class="dashboard-chip" id="todayChip">Live Monitoring</span>
-          <div class="connection-badge disconnected" id="connectionBadge">
-            <span class="connection-dot"></span>
-            <span id="connectionText">Connecting...</span>
-          </div>
+          <span class="dashboard-chip" id="todayChip">Welcome</span>
         </div>
       </header>
 
@@ -69,60 +58,22 @@
         <!-- Stats -->
         <div class="stats-grid">
           <div class="stat-card stat-card-compact glow-cyan">
-            <div class="stat-icon blue">📊</div>
-            <div class="stat-value" id="statTotal">0</div>
-            <div class="stat-label">Total Data Points</div>
+            <div class="stat-icon blue">�</div>
+            <div class="stat-value" id="statUsers">0</div>
+            <div class="stat-label">Total Users</div>
             <div class="stat-shimmer"></div>
           </div>
           <div class="stat-card stat-card-compact glow-magenta">
-            <div class="stat-icon green">🔬</div>
-            <div class="stat-value" id="statSimulations">0</div>
-            <div class="stat-label">Unique Simulations</div>
+            <div class="stat-icon green">🛡️</div>
+            <div class="stat-value" id="statAdmins">0</div>
+            <div class="stat-label">Admins</div>
             <div class="stat-shimmer"></div>
           </div>
           <div class="stat-card stat-card-compact glow-lime">
-            <div class="stat-icon amber">⚡</div>
-            <div class="stat-value" id="statLive">0</div>
-            <div class="stat-label">Live Updates (session)</div>
+            <div class="stat-icon amber">👁️</div>
+            <div class="stat-value" id="statViewers">0</div>
+            <div class="stat-label">Viewers</div>
             <div class="stat-shimmer"></div>
-          </div>
-          <div class="stat-card stat-card-compact glow-amber">
-            <div class="stat-icon teal">👥</div>
-            <div class="stat-value" id="statSource">—</div>
-            <div class="stat-label">Last Source</div>
-            <div class="stat-shimmer"></div>
-          </div>
-        </div>
-
-        <div class="dashboard-panels">
-          <!-- Live Simulation Feed -->
-          <div class="card dashboard-main-card">
-            <div class="card-header">
-              <h3>🔴 Live Simulation Feed</h3>
-              <div>
-                <select id="filterSim" style="padding:6px 12px;border-radius:8px;border:2px solid var(--border);font-size:0.82rem;">
-                  <option value="">All Simulations</option>
-                </select>
-              </div>
-            </div>
-            <div class="card-body sim-feed" id="simFeed">
-              <div class="empty-state" id="emptyState">
-                <div class="icon">📡</div>
-                <h3>Waiting for simulation data...</h3>
-                <p>Data will appear here instantly when MATLAB sends output via API or file drops.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Latest per Simulation -->
-          <div class="card dashboard-side-card">
-            <div class="card-header">
-              <h3>📋 Latest per Simulation</h3>
-              <button class="btn btn-outline btn-sm" onclick="loadLatest()">Refresh</button>
-            </div>
-            <div class="card-body" id="latestData">
-              <p style="color:var(--text-muted);text-align:center;padding:20px;">Loading...</p>
-            </div>
           </div>
         </div>
       </div>
@@ -131,22 +82,6 @@
 
   <script src="/js/app.js"></script>
   <script>
-    let socket;
-    let liveCount = 0;
-    let feedEntries = [];
-    const MAX_FEED = 100;
-
-    // Debounce utility — prevents rapid-fire DOM updates
-    function debounce(fn, ms) {
-      let timer;
-      return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), ms);
-      };
-    }
-
-    const debouncedRenderFeed = debounce(() => { renderFeed(); loadStats(); loadSimNames(); }, 120);
-
     // Initialize
     (async () => {
       const user = await Auth.check();
@@ -160,152 +95,23 @@
         document.getElementById('adminLink').style.display = '';
       }
 
-      // Connect Socket.IO
-      connectSocket(user);
-      
-      // Load existing data
+      // Load stats
       loadStats();
-      loadLatest();
-      loadSimNames();
     })();
-
-    function connectSocket(user) {
-      // Get token from cookie
-      const token = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('token='));
-      const tokenValue = token ? token.split('=')[1] : '';
-
-      socket = io({ auth: { token: tokenValue } });
-
-      socket.on('connect', () => {
-        updateConnection(true);
-        showToast('Connected to live feed', 'success');
-      });
-
-      socket.on('disconnect', () => {
-        updateConnection(false);
-      });
-
-      socket.on('simulation:data', (entry) => {
-        handleNewData(entry);
-      });
-
-      socket.on('simulation:cleared', () => {
-        feedEntries = [];
-        renderFeed();
-        loadStats();
-        showToast('All simulation data was cleared', 'info');
-      });
-    }
-
-    function updateConnection(connected) {
-      const badge = document.getElementById('connectionBadge');
-      const text = document.getElementById('connectionText');
-      badge.className = `connection-badge ${connected ? 'connected' : 'disconnected'}`;
-      text.textContent = connected ? 'Live' : 'Disconnected';
-    }
-
-    function handleNewData(entry) {
-      liveCount++;
-      document.getElementById('statLive').textContent = liveCount;
-      document.getElementById('statSource').textContent = entry.source;
-
-      // Add to feed
-      feedEntries.unshift(entry);
-      if (feedEntries.length > MAX_FEED) feedEntries.pop();
-
-      // Debounced DOM update to avoid rapid-fire reflows
-      debouncedRenderFeed();
-
-      showToast(`New data: ${entry.simulation_name}`, 'info');
-    }
-
-    function renderFeed() {
-      const container = document.getElementById('simFeed');
-      const filter = document.getElementById('filterSim').value;
-      const filtered = filter ? feedEntries.filter(e => e.simulation_name === filter) : feedEntries;
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="icon">📡</div>
-            <h3>Waiting for simulation data...</h3>
-            <p>Data will appear here instantly when MATLAB sends output via API or file drops.</p>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(entry => `
-        <div class="sim-entry">
-          <div class="sim-entry-header">
-            <div class="sim-name">
-              ${entry.simulation_name}
-              <span class="sim-source ${entry.source}">${entry.source}</span>
-            </div>
-            <span class="sim-time">${timeAgo(entry.timestamp)}</span>
-          </div>
-          <div class="sim-data">${formatSimData(entry.data)}</div>
-        </div>
-      `).join('');
-    }
 
     async function loadStats() {
       try {
-        const data = await API.get('/api/matlab/simulations?limit=1');
-        document.getElementById('statTotal').textContent = data.total;
-
-        const names = await API.get('/api/matlab/names');
-        document.getElementById('statSimulations').textContent = names.names.length;
+        const data = await API.get('/api/admin/stats');
+        document.getElementById('statUsers').textContent = data.totalUsers;
+        document.getElementById('statAdmins').textContent = data.adminCount;
+        document.getElementById('statViewers').textContent = data.viewerCount;
       } catch (err) {
         console.error('Failed to load stats:', err);
       }
     }
-
-    async function loadLatest() {
-      try {
-        const data = await API.get('/api/matlab/latest');
-        const container = document.getElementById('latestData');
-
-        if (data.simulations.length === 0) {
-          container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">No simulation data yet</p>';
-          return;
-        }
-
-        container.innerHTML = data.simulations.map(sim => `
-          <div class="sim-entry">
-            <div class="sim-entry-header">
-              <div class="sim-name">
-                ${sim.simulation_name}
-                <span class="sim-source ${sim.source}">${sim.source}</span>
-              </div>
-              <span class="sim-time">${formatDateTime(sim.timestamp)}</span>
-            </div>
-            <div class="sim-data">${formatSimData(sim.data)}</div>
-          </div>
-        `).join('');
-      } catch (err) {
-        console.error('Failed to load latest:', err);
-      }
-    }
-
-    async function loadSimNames() {
-      try {
-        const data = await API.get('/api/matlab/names');
-        const select = document.getElementById('filterSim');
-        const current = select.value;
-        let opts = '<option value="">All Simulations</option>';
-        data.names.forEach(n => {
-          opts += `<option value="${n.simulation_name}" ${n.simulation_name === current ? 'selected' : ''}>${n.simulation_name} (${n.count})</option>`;
-        });
-        select.innerHTML = opts;
-      } catch (err) {
-        console.error('Failed to load simulation names:', err);
-      }
-    }
-
-    // Filter event
-    document.getElementById('filterSim').addEventListener('change', renderFeed);
   </script>
 
-  <script src="/js/particles.js?v=3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="/js/particles.js?v=4"></script>
 </body>
 </html>

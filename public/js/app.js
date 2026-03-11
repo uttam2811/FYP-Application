@@ -113,29 +113,3 @@ function timeAgo(dateStr) {
 function formatDateTime(dateStr) {
   return new Date(dateStr).toLocaleString();
 }
-
-// ===== Data display formatting =====
-function formatSimData(data) {
-  if (typeof data === 'string') return data;
-  if (data.headers && data.rows) {
-    // CSV table format
-    let html = '<table style="width:100%;font-size:0.8rem;"><thead><tr>';
-    data.headers.forEach(h => html += `<th style="padding:4px 8px;">${h}</th>`);
-    html += '</tr></thead><tbody>';
-    const displayRows = data.rows.slice(0, 20);
-    displayRows.forEach(row => {
-      html += '<tr>';
-      data.headers.forEach(h => html += `<td style="padding:4px 8px;">${row[h] ?? ''}</td>`);
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-    if (data.rows.length > 20) {
-      html += `<div style="padding:8px;color:var(--text-muted);font-size:0.78rem;">... and ${data.rows.length - 20} more rows</div>`;
-    }
-    return html;
-  }
-  if (data.text) {
-    return `<pre>${data.text}</pre>`;
-  }
-  return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-}

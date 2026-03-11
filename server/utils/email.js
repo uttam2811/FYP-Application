@@ -19,8 +19,8 @@ function generateOTP() {
 // Send OTP email
 async function sendOTPEmail(toEmail, otp, purpose = 'login') {
   const subjects = {
-    login: 'Your Login OTP — MATLAB Monitor',
-    register: 'Verify Your Email — MATLAB Monitor'
+    login: 'Your Login OTP — FYP Application',
+    register: 'Verify Your Email — FYP Application'
   };
 
   const messages = {
@@ -28,7 +28,7 @@ async function sendOTPEmail(toEmail, otp, purpose = 'login') {
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0;">
         <div style="text-align: center; margin-bottom: 24px;">
           <div style="font-size: 2.5rem;">📡</div>
-          <h1 style="color: #1e293b; font-size: 1.4rem; margin: 8px 0;">MATLAB Monitor</h1>
+          <h1 style="color: #1e293b; font-size: 1.4rem; margin: 8px 0;">FYP Application</h1>
           <p style="color: #64748b; font-size: 0.9rem;">Login Verification</p>
         </div>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
@@ -49,7 +49,7 @@ async function sendOTPEmail(toEmail, otp, purpose = 'login') {
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0;">
         <div style="text-align: center; margin-bottom: 24px;">
           <div style="font-size: 2.5rem;">📡</div>
-          <h1 style="color: #1e293b; font-size: 1.4rem; margin: 8px 0;">MATLAB Monitor</h1>
+          <h1 style="color: #1e293b; font-size: 1.4rem; margin: 8px 0;">FYP Application</h1>
           <p style="color: #64748b; font-size: 0.9rem;">Email Verification</p>
         </div>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
@@ -69,7 +69,7 @@ async function sendOTPEmail(toEmail, otp, purpose = 'login') {
   };
 
   const mailOptions = {
-    from: `"MATLAB Monitor" <${process.env.EMAIL_FROM}>`,
+    from: `"FYP Application" <${process.env.EMAIL_FROM}>`,
     to: toEmail,
     subject: subjects[purpose] || subjects.login,
     html: messages[purpose] || messages.login
