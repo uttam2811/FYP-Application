@@ -22,22 +22,22 @@
 
   // Configuration
   const CFG = {
-    count: 200,
-    magnetRadius: 12,
-    ringRadius: 12,
-    waveSpeed: 0.3,
-    waveAmplitude: 1.5,
-    particleSize: 1.2,
-    lerpSpeed: 0.04,
+    count: 250,
+    magnetRadius: 14,
+    ringRadius: 14,
+    waveSpeed: 0.25,
+    waveAmplitude: 2.0,
+    particleSize: 1.3,
+    lerpSpeed: 0.035,
     autoAnimate: true,
-    particleVariance: 1.2,
-    rotationSpeed: 0.0003,
-    depthFactor: 1.2,
-    pulseSpeed: 2,
-    fieldStrength: 15,
+    particleVariance: 1.3,
+    rotationSpeed: 0.0004,
+    depthFactor: 1.4,
+    pulseSpeed: 1.8,
+    fieldStrength: 18,
     connectParticles: true,
-    connectionDistance: 10,
-    connectionOpacity: 0.08
+    connectionDistance: 12,
+    connectionOpacity: 0.1
   };
 
   // Container
@@ -185,8 +185,8 @@
     let destY = (pointer.y * vp.height) / 2;
 
     if (CFG.autoAnimate && Date.now() - lastMouseMoveTime > 3000) {
-      destX = Math.sin(elapsed * 0.25) * (vp.width / 3);
-      destY = Math.cos(elapsed * 0.4) * (vp.height / 3);
+      destX = Math.sin(elapsed * 0.2) * (vp.width / 3) + Math.sin(elapsed * 0.5) * (vp.width / 8);
+      destY = Math.cos(elapsed * 0.35) * (vp.height / 3) + Math.cos(elapsed * 0.7) * (vp.height / 8);
     }
 
     virtualMouse.x += (destX - virtualMouse.x) * 0.04;
@@ -275,12 +275,14 @@
     if (CFG.connectParticles) {
       lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
       lineGeometry.attributes.position.needsUpdate = true;
-      lineMaterial.opacity = CFG.connectionOpacity * (0.5 + Math.sin(elapsed * 0.5) * 0.3);
+      lineMaterial.opacity = CFG.connectionOpacity * (0.6 + Math.sin(elapsed * 0.8) * 0.4);
     }
 
-    // Subtle camera movement
-    camera.position.x += (pointer.x * 1.5 - camera.position.x) * 0.008;
-    camera.position.y += (pointer.y * 1.5 - camera.position.y) * 0.008;
+    // Smooth camera movement with subtle sway
+    camera.position.x += (pointer.x * 2.0 - camera.position.x) * 0.006;
+    camera.position.y += (pointer.y * 2.0 - camera.position.y) * 0.006;
+    camera.position.x += Math.sin(elapsed * 0.15) * 0.02;
+    camera.position.y += Math.cos(elapsed * 0.12) * 0.02;
     camera.lookAt(0, 0, 0);
 
     renderer.render(scene, camera);

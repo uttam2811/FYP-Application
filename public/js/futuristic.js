@@ -10,17 +10,34 @@
   // LOADING SCREEN
   // ============================================================
   function initLoadingScreen() {
+    const existingScreen = document.getElementById('loadingScreen');
+    if (existingScreen) return;
+    
     const loadingScreen = document.createElement('div');
     loadingScreen.className = 'loading-screen';
+    loadingScreen.id = 'loadingScreen';
     loadingScreen.innerHTML = `
       <div class="loading-logo">FYP SYSTEM</div>
       <div class="loading-bar"></div>
-      <div class="loading-text">INITIALIZING...</div>
+      <div class="loading-text">INITIALIZING SYSTEM...</div>
     `;
     document.body.appendChild(loadingScreen);
 
-    // Hide loading screen after animation
+    const loadingText = loadingScreen.querySelector('.loading-text');
+    const messages = ['LOADING MODULES...', 'CONNECTING SERVICES...', 'READY'];
+    let msgIdx = 0;
+    
+    const msgInterval = setInterval(() => {
+      if (msgIdx < messages.length) {
+        loadingText.textContent = messages[msgIdx];
+        msgIdx++;
+      } else {
+        clearInterval(msgInterval);
+      }
+    }, 700);
+
     setTimeout(() => {
+      clearInterval(msgInterval);
       loadingScreen.classList.add('hidden');
       setTimeout(() => loadingScreen.remove(), 800);
     }, 2500);
@@ -46,23 +63,28 @@
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      const rotateX = (y - centerY) / 10;
-      const rotateY = (centerX - x) / 10;
+      const rotateX = ((y - centerY) / 12).toFixed(2);
+      const rotateY = ((centerX - x) / 12).toFixed(2);
 
       card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(20px)`;
+      card.style.transition = 'transform 0.1s ease-out';
 
       // Update shine effect
       const shine = card.querySelector('.tilt-card-shine');
       if (shine) {
         const percentX = (x / rect.width) * 100;
         const percentY = (y / rect.height) * 100;
-        shine.style.background = `radial-gradient(circle at ${percentX}% ${percentY}%, rgba(255,255,255,0.2) 0%, transparent 60%)`;
+        shine.style.background = `radial-gradient(circle at ${percentX}% ${percentY}%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 40%, transparent 60%)`;
+        shine.style.opacity = '1';
       }
     }
 
     function resetTilt(e) {
       const card = e.currentTarget;
       card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)';
+      card.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      const shine = card.querySelector('.tilt-card-shine');
+      if (shine) shine.style.opacity = '0';
     }
 
     function addShine(e) {
@@ -355,14 +377,92 @@
     grid.className = 'grid-bg';
     document.body.appendChild(grid);
 
-    // Animate grid lines
+    // Animate grid lines smoothly
     let offset = 0;
     function animateGrid() {
-      offset += 0.5;
+      offset += 0.3;
       grid.style.backgroundPosition = `${offset}px ${offset}px`;
       requestAnimationFrame(animateGrid);
     }
     animateGrid();
+  }
+
+  // ============================================================
+  // RIPPLE EFFECT ON BUTTONS
+  // ============================================================
+  function initRippleButtons() {
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.button-submit, .btn-primary, .btn');
+      if (!btn) return;
+
+      const ripple = document.createElement('span');
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      
+      ripple.style.cssText = `
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        width: ${size}px;
+        height: ${size}px;
+        left: ${e.clientX - rect.left - size/2}px;
+        top: ${e.clientY - rect.top - size/2}px;
+        transform: scale(0);
+        animation: rippleEffect 0.6s ease-out;
+        pointer-events: none;
+      `;
+      
+      btn.style.position = 'relative';
+      btn.style.overflow = 'hidden';
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+
+    // Add CSS for ripple
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes rippleEffect {
+        0% { transform: scale(0); opacity: 0.6; }
+        100% { transform: scale(4); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // ============================================================
+  // SMOOTH REVEAL ON SCROLL
+  // ============================================================
+  function initScrollReveal() {
+    const style = document.createElement('style');
+    style.textContent = `
+      .reveal-ready {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reveal-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    `;
+    document.head.appendChild(style);
+
+    const elements = document.querySelectorAll('.stat-card, .card, .stat-card-3d, .section-card');
+    elements.forEach((el, index) => {
+      el.classList.add('reveal-ready');
+      el.style.transitionDelay = `${index * 0.08}s`;
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+
+    elements.forEach(el => observer.observe(el));
   }
 
   // ============================================================
@@ -543,6 +643,8 @@
       initTypewriter();
       initCornerDecorations();
       initHolographicCards();
+      initRippleButtons();
+      initScrollReveal();
 
       // Optional effects
       // initCustomCursor();

@@ -22,6 +22,9 @@
           <a href="/dashboard" class="nav-link">
             <span class="icon">&#128202;</span> Dashboard
           </a>
+          <a href="/simulation" class="nav-link">
+            <span class="icon">&#9203;</span> Simulation
+          </a>
           <a href="/admin" class="nav-link active">
             <span class="icon">&#9881;</span> Admin Panel
           </a>
@@ -54,19 +57,22 @@
       <div class="page-content">
         <!-- Admin Stats -->
         <div class="stats-grid">
-          <div class="stat-card" data-tilt>
+          <div class="stat-card holographic" data-tilt>
+            <div class="tilt-card-shine"></div>
             <div class="stat-icon blue">&#128100;</div>
             <div class="stat-value" id="statTotalUsers" data-count>0</div>
             <div class="stat-label">Total Users</div>
             <div class="stat-shimmer"></div>
           </div>
-          <div class="stat-card" data-tilt>
+          <div class="stat-card holographic" data-tilt>
+            <div class="tilt-card-shine"></div>
             <div class="stat-icon green">&#128737;</div>
             <div class="stat-value" id="statAdmins" data-count>0</div>
             <div class="stat-label">Admin Users</div>
             <div class="stat-shimmer"></div>
           </div>
-          <div class="stat-card" data-tilt>
+          <div class="stat-card holographic" data-tilt>
+            <div class="tilt-card-shine"></div>
             <div class="stat-icon amber">&#128065;</div>
             <div class="stat-value" id="statViewers" data-count>0</div>
             <div class="stat-label">Viewer Users</div>
@@ -174,20 +180,29 @@
     function animateCounter(elementId, target) {
       const element = document.getElementById(elementId);
       const duration = 2000;
-      const step = target / (duration / 16);
-      let current = 0;
+      const startTime = performance.now();
 
-      const update = () => {
-        current += step;
-        if (current < target) {
-          element.textContent = Math.floor(current);
+      const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+      const update = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutExpo(progress);
+        const currentValue = Math.floor(easedProgress * target);
+        
+        element.textContent = currentValue;
+        
+        if (progress < 1) {
           requestAnimationFrame(update);
         } else {
           element.textContent = target;
+          element.style.transition = 'transform 0.3s ease';
+          element.style.transform = 'scale(1.1)';
+          setTimeout(() => element.style.transform = 'scale(1)', 200);
         }
       };
 
-      update();
+      requestAnimationFrame(update);
     }
 
     async function loadUsers() {

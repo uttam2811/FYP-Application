@@ -86,9 +86,9 @@
 
   <!-- Loading Screen -->
   <div class="loading-screen" id="loadingScreen">
-    <div class="loading-logo">FYP SYSTEM</div>
+    <div class="loading-logo" data-scramble="FYP SYSTEM|POWER SYSTEM|MONITORING">FYP SYSTEM</div>
     <div class="loading-bar"><div class="loading-bar-fill"></div></div>
-    <div class="loading-text">INITIALIZING...</div>
+    <div class="loading-text" id="loadingText">INITIALIZING SYSTEM...</div>
   </div>
 
   <!-- Login Container -->
@@ -98,6 +98,11 @@
 
       <h1>FYP SYSTEM</h1>
       <p class="subtitle">Power System Monitoring Dashboard</p>
+
+      <div style="margin: 10px 0 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0, 243, 255, 0.25); background: rgba(0, 243, 255, 0.06); font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+        <strong style="color: var(--neon-cyan);">Secure Sign-In:</strong>
+        Your session uses HTTP-only cookies and 2-step OTP verification for better account protection.
+      </div>
 
       <div id="alert" class="alert"></div>
 
@@ -164,6 +169,7 @@
 
       <div class="register-link" id="registerLink">
         <p class="p">Don't have an account? <a class="span" href="/register">Register</a></p>
+        <p class="p" style="margin-top:8px; font-size:0.8rem; color:var(--text-muted);">Read how your data is protected: <a class="span" href="/security">Security Center</a></p>
       </div>
     </div>
   </div>
@@ -171,15 +177,26 @@
   <!-- Tech decoration -->
   <div class="tech-decoration">
     <div class="tech-line"></div>
-    <div class="tech-text">System v2.0</div>
+    <div class="tech-text" data-typewriter="System v2.0 &#8226; Secure Authentication">System v2.0</div>
     <div class="tech-line"></div>
   </div>
 
   <script src="/js/app.js"></script>
   <script src="/js/futuristic.js"></script>
   <script>
-    // Hide loading screen after animation
+    // Hide loading screen with progressive text
+    const loadingMessages = ['AUTHENTICATING MODULES...', 'CONNECTING TO SERVER...', 'SYSTEM READY'];
+    let msgIdx = 0;
+    const loadingText = document.getElementById('loadingText');
+    const msgTimer = setInterval(() => {
+      if (msgIdx < loadingMessages.length && loadingText) {
+        loadingText.textContent = loadingMessages[msgIdx];
+        msgIdx++;
+      } else clearInterval(msgTimer);
+    }, 700);
+    
     setTimeout(() => {
+      clearInterval(msgTimer);
       document.getElementById('loadingScreen').classList.add('hidden');
     }, 2500);
 

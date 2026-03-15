@@ -2,15 +2,21 @@
 const API = {
   async request(url, options = {}) {
     const defaults = {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
       credentials: 'same-origin'
     };
     const config = { ...defaults, ...options };
+    config.headers = { ...defaults.headers, ...(options.headers || {}) };
     if (options.body && typeof options.body === 'object') {
       config.body = JSON.stringify(options.body);
     }
     const res = await fetch(url, config);
-    const data = await res.json();
+    const isJson = (res.headers.get('content-type') || '').includes('application/json');
+    const data = isJson ? await res.json() : { error: await res.text() };
     if (!res.ok) {
       throw new Error(data.error || `Request failed (${res.status})`);
     }

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulation - FYP Power System</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="dashboard-page">
+  <div class="scan-lines"></div>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>FYP SYSTEM</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigation</div>
+          <a href="/dashboard" class="nav-link">
+            <span class="icon">&#128202;</span> Dashboard
+          </a>
+          <a href="/simulation" class="nav-link active">
+            <span class="icon">&#9203;</span> Simulation
+          </a>
+          <a href="/admin" class="nav-link" id="adminLink" style="display:none;">
+            <span class="icon">&#9881;</span> Admin Panel
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div class="user-details">
+            <div class="name" id="userName">Loading...</div>
+            <div class="role" id="userRole">-</div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="width:100%;margin-top:8px;" onclick="Auth.logout()">
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="dashboard-header-meta">
+          <p class="dashboard-eyebrow">Simulation Workspace</p>
+          <h1>Simulation</h1>
+        </div>
+        <div class="header-actions" style="gap:10px;">
+          <span class="dashboard-chip" id="dashboardChip">DASHBOARD OFFLINE</span>
+          <span class="dashboard-chip" id="matlabChip">MATLAB DISCONNECTED</span>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="card holographic" data-tilt>
+          <div class="card-header">
+            <h3>&#128736; Run Flow (Manual MATLAB Launch)</h3>
+          </div>
+          <div class="card-body" style="color:var(--text-secondary); line-height:1.8;">
+            <p>1. Open the Simulink model from project files folder.</p>
+            <p>2. Run the MATLAB script in the same folder to start simulation.</p>
+            <p>3. Enter the requested date when the script prompts.</p>
+            <p>4. Keep this page open to track run percentage, ETA, and live values.</p>
+            <div style="margin-top:10px;padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:rgba(255,255,255,0.02);">
+              <strong style="color:var(--text-primary);">Detected project path:</strong>
+              <span id="projectPath">D:\\FPY Application_Files</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card holographic" data-tilt>
+          <div class="card-header">
+            <h3>&#128269; Simulation Discovery</h3>
+          </div>
+          <div class="card-body" style="line-height:1.8;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+              <div style="padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:rgba(255,255,255,0.02);">
+                <div style="font-family:var(--font-tech);font-size:0.72rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Dashboard Status</div>
+                <div id="dashboardStatusText" style="font-weight:700;color:var(--text-primary);">Offline</div>
+              </div>
+              <div style="padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:rgba(255,255,255,0.02);">
+                <div style="font-family:var(--font-tech);font-size:0.72rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">MATLAB Connection</div>
+                <div id="matlabStatusText" style="font-weight:700;color:var(--text-primary);">Disconnected</div>
+              </div>
+              <div style="padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:rgba(255,255,255,0.02);">
+                <div style="font-family:var(--font-tech);font-size:0.72rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Simulation State</div>
+                <div id="simulationStateText" style="font-weight:700;color:var(--text-primary);">Idle</div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;">
+              <div style="font-family:var(--font-tech);font-size:0.72rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Detected MATLAB Files</div>
+              <div id="matlabFiles" style="color:var(--text-secondary);">No MATLAB files found.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card holographic" data-tilt>
+          <div class="card-header">
+            <h3>&#9203; Live Progress</h3>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:8px;color:var(--text-secondary);">Progress: <strong id="progressLabel" style="color:var(--text-primary);">0%</strong></div>
+            <div style="height:14px;width:100%;border-radius:999px;border:1px solid rgba(0,243,255,0.3);background:rgba(0,243,255,0.08);overflow:hidden;">
+              <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#00f3ff,#58ffb2);box-shadow:0 0 18px rgba(0,243,255,0.4);transition:width 0.8s ease;"></div>
+            </div>
+            <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;color:var(--text-secondary);font-size:0.9rem;">
+              <div>Elapsed: <strong id="elapsedText" style="color:var(--text-primary);">00:00</strong></div>
+              <div>Time Left: <strong id="etaText" style="color:var(--text-primary);">--:--</strong></div>
+              <div>Updated: <strong id="updatedText" style="color:var(--text-primary);">-</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card holographic" data-tilt>
+          <div class="card-header">
+            <h3>&#128200; Live Results</h3>
+          </div>
+          <div class="card-body">
+            <div id="resultsSection" style="color:var(--text-secondary);line-height:1.7;">No live results yet.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/futuristic.js"></script>
+  <script>
+    let poller = null;
+
+    function formatSeconds(totalSeconds) {
+      if (totalSeconds == null || Number.isNaN(Number(totalSeconds))) return '--:--';
+      const value = Math.max(0, Math.floor(Number(totalSeconds)));
+      const hours = Math.floor(value / 3600);
+      const minutes = Math.floor((value % 3600) / 60);
+      const seconds = value % 60;
+      if (hours > 0) {
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function setChip(chipId, live, text) {
+      const chip = document.getElementById(chipId);
+      chip.textContent = text;
+      chip.style.background = live ? 'rgba(88,255,178,0.18)' : 'rgba(255,93,93,0.18)';
+      chip.style.borderColor = live ? 'rgba(88,255,178,0.45)' : 'rgba(255,93,93,0.45)';
+      chip.style.color = live ? '#58ffb2' : '#ff7b7b';
+      chip.style.boxShadow = live ? '0 0 14px rgba(88,255,178,0.28)' : '0 0 14px rgba(255,123,123,0.2)';
+    }
+
+    function renderResults(results) {
+      const target = document.getElementById('resultsSection');
+      if (!results || Object.keys(results).length === 0) {
+        target.textContent = 'No live results yet.';
+        return;
+      }
+
+      const lines = Object.entries(results).slice(0, 12).map(([key, value]) => {
+        const safeValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        return `<div><strong style="color:var(--text-primary);">${key}:</strong> ${safeValue}</div>`;
+      });
+      target.innerHTML = lines.join('');
+    }
+
+    function renderMatlabFiles(files) {
+      const target = document.getElementById('matlabFiles');
+      if (!files || files.length === 0) {
+        target.textContent = 'No MATLAB files found.';
+        return;
+      }
+
+      target.innerHTML = files.map(file => `<div style="margin-bottom:4px;">- ${file}</div>`).join('');
+    }
+
+    async function loadSimulation() {
+      try {
+        const data = await API.get('/api/simulation/status');
+
+        const dashboardLive = data.dashboardStatus === 'live';
+        const matlabConnected = data.matlab?.connectionStatus === 'connected';
+
+        setChip('dashboardChip', dashboardLive, dashboardLive ? 'DASHBOARD LIVE' : 'DASHBOARD OFFLINE');
+        setChip('matlabChip', matlabConnected, matlabConnected ? 'MATLAB CONNECTED' : 'MATLAB DISCONNECTED');
+
+        document.getElementById('dashboardStatusText').textContent = dashboardLive ? 'Live' : 'Offline';
+        document.getElementById('matlabStatusText').textContent = data.matlab?.connectionStatus || 'disconnected';
+        document.getElementById('simulationStateText').textContent = data.simulation?.state || 'idle';
+
+        document.getElementById('projectPath').textContent = data.matlab?.projectFilesPath || 'D:\\FPY Application_Files';
+        renderMatlabFiles(data.matlab?.matlabFiles || []);
+
+        const progress = Math.max(0, Math.min(100, Number(data.simulation?.progress || 0)));
+        document.getElementById('progressBar').style.width = `${progress}%`;
+        document.getElementById('progressLabel').textContent = `${Math.round(progress)}%`;
+        document.getElementById('elapsedText').textContent = formatSeconds(data.simulation?.elapsedSeconds);
+        document.getElementById('etaText').textContent = formatSeconds(data.simulation?.etaSeconds);
+        document.getElementById('updatedText').textContent = data.simulation?.updatedAt
+          ? new Date(data.simulation.updatedAt).toLocaleTimeString()
+          : '-';
+
+        renderResults(data.results || {});
+      } catch {
+        setChip('dashboardChip', false, 'DASHBOARD OFFLINE');
+        setChip('matlabChip', false, 'MATLAB DISCONNECTED');
+      }
+    }
+
+    (async () => {
+      const user = await Auth.check();
+      if (!user) return window.location.href = '/login';
+
+      document.getElementById('userName').textContent = user.username;
+      document.getElementById('userRole').textContent = user.role;
+      document.getElementById('userAvatar').textContent = user.username[0].toUpperCase();
+      if (user.role === 'admin') {
+        document.getElementById('adminLink').style.display = '';
+      }
+
+      await loadSimulation();
+      poller = setInterval(loadSimulation, 3000);
+    })();
+
+    window.addEventListener('beforeunload', () => {
+      if (poller) clearInterval(poller);
+    });
+  </script>
+</body>
+</html>

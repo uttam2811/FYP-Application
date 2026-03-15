@@ -7,6 +7,42 @@ const { generateOTP, sendOTPEmail } = require('../utils/email');
 require('dotenv').config();
 
 const OTP_EXPIRY = parseInt(process.env.OTP_EXPIRY_MINUTES || '5');
+const isProduction = process.env.NODE_ENV === 'production';
+const jwtExpiry = process.env.JWT_EXPIRY || '12h';
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidUsername(username) {
+  return /^[a-zA-Z0-9_]{3,30}$/.test(username);
+}
+
+function isValidOtp(otp) {
+  return /^\d{6}$/.test(otp);
+}
+
+function signToken(user) {
+  return jwt.sign(
+    { id: user.id, username: user.username, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: jwtExpiry }
+  );
+}
+
+function getCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    maxAge: 12 * 60 * 60 * 1000,
+    path: '/'
+  };
+}
+
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  console.warn('[security] JWT_SECRET is missing or too short. Use a strong secret (16+ chars).');
+}
 
 // =============================================
 // REGISTRATION FLOW (2-step: register → verify)
@@ -14,9 +50,17 @@ const OTP_EXPIRY = parseInt(process.env.OTP_EXPIRY_MINUTES || '5');
 
 // POST /api/auth/register — Step 1: submit registration & send OTP to email
 router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+  const username = req.body.username?.trim();
+  const email = req.body.email?.trim().toLowerCase();
+  const password = req.body.password;
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'Username, email, and password are required' });
+  }
+  if (!isValidUsername(username)) {
+    return res.status(400).json({ error: 'Username must be 3-30 characters (letters, numbers, underscore only)' });
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Please provide a valid email address' });
   }
   if (password.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -53,9 +97,13 @@ router.post('/register', async (req, res) => {
 
 // POST /api/auth/verify-register — Step 2: verify OTP to complete registration
 router.post('/verify-register', (req, res) => {
-  const { email, otp } = req.body;
+  const email = req.body.email?.trim().toLowerCase();
+  const otp = req.body.otp?.trim();
   if (!email || !otp) {
     return res.status(400).json({ error: 'Email and OTP are required' });
+  }
+  if (!isValidEmail(email) || !isValidOtp(otp)) {
+    return res.status(400).json({ error: 'Invalid email or verification code format' });
   }
 
   const pending = getOne(
@@ -107,9 +155,13 @@ router.post('/verify-register', (req, res) => {
 
 // POST /api/auth/login — Step 1: validate credentials & send OTP
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const username = req.body.username?.trim();
+  const password = req.body.password;
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
+  }
+  if (!isValidUsername(username)) {
+    return res.status(400).json({ error: 'Invalid username format' });
   }
 
   const user = getOne('SELECT * FROM users WHERE username = ? AND is_active = 1', [username]);
@@ -124,21 +176,13 @@ router.post('/login', async (req, res) => {
 
   // Admin users (role === 'admin') bypass OTP — direct login
   if (user.role === 'admin') {
-    const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+    const token = signToken(user);
 
     runStmt('INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)',
       [user.id, 'login', `Admin ${user.username} logged in (no OTP)`]);
     saveDb();
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: 'strict'
-    });
+    res.cookie('token', token, getCookieOptions());
 
     return res.json({
       message: 'Login successful',
@@ -180,9 +224,13 @@ router.post('/login', async (req, res) => {
 
 // POST /api/auth/verify-login — Step 2: verify OTP to get token
 router.post('/verify-login', (req, res) => {
-  const { username, otp } = req.body;
+  const username = req.body.username?.trim();
+  const otp = req.body.otp?.trim();
   if (!username || !otp) {
     return res.status(400).json({ error: 'Username and OTP are required' });
+  }
+  if (!isValidUsername(username) || !isValidOtp(otp)) {
+    return res.status(400).json({ error: 'Invalid username or OTP format' });
   }
 
   const user = getOne('SELECT * FROM users WHERE username = ? AND is_active = 1', [username]);
@@ -209,22 +257,14 @@ router.post('/verify-login', (req, res) => {
   runStmt('DELETE FROM otp_codes WHERE email = ? AND purpose = ?', [user.email, 'login']);
 
   // Generate JWT token
-  const token = jwt.sign(
-    { id: user.id, username: user.username, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '24h' }
-  );
+  const token = signToken(user);
 
   // Log activity
   runStmt('INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)',
     [user.id, 'login', `User ${user.username} logged in (OTP verified)`]);
   saveDb();
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'strict'
-  });
+  res.cookie('token', token, getCookieOptions());
 
   res.json({
     message: 'Login successful',
@@ -234,11 +274,13 @@ router.post('/verify-login', (req, res) => {
 
 // POST /api/auth/resend-otp — Resend OTP for login
 router.post('/resend-otp', async (req, res) => {
-  const { username, purpose } = req.body;
+  const username = req.body.username?.trim();
+  const purpose = req.body.purpose;
 
   if (purpose === 'register') {
-    const { email } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
     if (!email) return res.status(400).json({ error: 'Email is required' });
+    if (!isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format' });
 
     const pending = getOne('SELECT * FROM pending_registrations WHERE email = ? AND verified = 0', [email]);
     if (!pending) return res.status(400).json({ error: 'No pending registration found' });
@@ -256,6 +298,7 @@ router.post('/resend-otp', async (req, res) => {
 
   // Login resend
   if (!username) return res.status(400).json({ error: 'Username is required' });
+  if (!isValidUsername(username)) return res.status(400).json({ error: 'Invalid username format' });
 
   const user = getOne('SELECT * FROM users WHERE username = ? AND is_active = 1', [username]);
   if (!user) return res.status(401).json({ error: 'User not found' });
@@ -276,7 +319,12 @@ router.post('/resend-otp', async (req, res) => {
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    path: '/'
+  });
   res.json({ message: 'Logged out successfully' });
 });
 

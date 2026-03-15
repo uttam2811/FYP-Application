@@ -22,6 +22,9 @@
           <a href="/dashboard" class="nav-link active">
             <span class="icon">&#128202;</span> Dashboard
           </a>
+          <a href="/simulation" class="nav-link">
+            <span class="icon">&#9203;</span> Simulation
+          </a>
           <a href="/admin" class="nav-link" id="adminLink" style="display:none;">
             <span class="icon">&#9881;</span> Admin Panel
           </a>
@@ -49,26 +52,30 @@
           <h1>Dashboard</h1>
         </div>
         <div class="header-actions">
-          <span class="dashboard-chip" id="statusChip">LIVE</span>
+          <span class="dashboard-chip" id="dashboardStatusChip" data-neon>&#9679; OFFLINE</span>
+          <span class="dashboard-chip" id="matlabStatusChip">MATLAB: DISCONNECTED</span>
         </div>
       </header>
 
       <div class="page-content">
         <!-- Stats -->
         <div class="stats-grid">
-          <div class="stat-card" data-tilt>
+          <div class="stat-card holographic" data-tilt>
+            <div class="tilt-card-shine"></div>
             <div class="stat-icon blue">&#128100;</div>
             <div class="stat-value" id="statUsers" data-count>0</div>
             <div class="stat-label">Total Users</div>
             <div class="stat-shimmer"></div>
           </div>
-          <div class="stat-card" data-tilt>
+          <div class="stat-card holographic" data-tilt>
+            <div class="tilt-card-shine"></div>
             <div class="stat-icon green">&#128737;</div>
             <div class="stat-value" id="statAdmins" data-count>0</div>
             <div class="stat-label">Admin Users</div>
             <div class="stat-shimmer"></div>
           </div>
-          <div class="stat-card" data-tilt>
+          <div class="stat-card holographic" data-tilt>
+            <div class="tilt-card-shine"></div>
             <div class="stat-icon amber">&#128065;</div>
             <div class="stat-value" id="statViewers" data-count>0</div>
             <div class="stat-label">Viewer Users</div>
@@ -76,8 +83,47 @@
           </div>
         </div>
 
+        <!-- Simulation Monitor -->
+        <div class="card holographic" data-tilt>
+          <div class="card-header">
+            <h3>&#9203; Simulation Monitor</h3>
+          </div>
+          <div class="card-body">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
+              <div style="padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.02);">
+                <div style="font-family: var(--font-tech); font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Dashboard Status</div>
+                <div id="dashboardStatusText" style="color: var(--text-primary); font-weight: 700;">Offline</div>
+              </div>
+              <div style="padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.02);">
+                <div style="font-family: var(--font-tech); font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">MATLAB Connection</div>
+                <div id="matlabStatusText" style="color: var(--text-primary); font-weight: 700;">Disconnected</div>
+              </div>
+              <div style="padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.02);">
+                <div style="font-family: var(--font-tech); font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Simulation State</div>
+                <div id="simulationStateText" style="color: var(--text-primary); font-weight: 700;">Idle</div>
+              </div>
+            </div>
+
+            <div style="margin: 8px 0 8px; color: var(--text-secondary); font-size: 0.9rem;">Run Progress: <span id="simulationProgressLabel" style="color: var(--text-primary); font-weight: 700;">0%</span></div>
+            <div style="height: 14px; width: 100%; border-radius: 999px; border: 1px solid rgba(0,243,255,0.3); background: rgba(0,243,255,0.08); overflow: hidden;">
+              <div id="simulationProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #00f3ff, #58ffb2); box-shadow: 0 0 18px rgba(0,243,255,0.4); transition: width 0.8s ease;"></div>
+            </div>
+
+            <div style="display:flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; color: var(--text-secondary); font-size: 0.9rem;">
+              <div>Elapsed: <strong id="simulationElapsed" style="color: var(--text-primary);">00:00</strong></div>
+              <div>Time Left: <strong id="simulationEta" style="color: var(--text-primary);">--:--</strong></div>
+              <div>Last Update: <strong id="simulationUpdatedAt" style="color: var(--text-primary);">-</strong></div>
+            </div>
+
+            <div style="margin-top: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.02);">
+              <div style="font-family: var(--font-tech); font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">Live Simulation Results</div>
+              <div id="simulationResults" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7;">No live results yet.</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Welcome Card -->
-        <div class="card" data-tilt>
+        <div class="card holographic" data-tilt>
           <div class="card-header">
             <h3>&#127775; Welcome to FYP Power System</h3>
           </div>
@@ -95,7 +141,7 @@
         </div>
 
         <!-- System Info Card -->
-        <div class="card" data-tilt>
+        <div class="card holographic" data-tilt>
           <div class="card-header">
             <h3>&#128267; System Information</h3>
           </div>
@@ -123,6 +169,8 @@
   <script src="/js/app.js"></script>
   <script src="/js/futuristic.js"></script>
   <script>
+    let simulationPoller = null;
+
     // Initialize
     (async () => {
       const user = await Auth.check();
@@ -138,7 +186,82 @@
 
       // Load stats
       loadStats();
+      await loadSimulationStatus();
+      simulationPoller = setInterval(loadSimulationStatus, 3000);
     })();
+
+    function formatSeconds(totalSeconds) {
+      if (totalSeconds == null || Number.isNaN(Number(totalSeconds))) return '--:--';
+      const value = Math.max(0, Math.floor(Number(totalSeconds)));
+      const hours = Math.floor(value / 3600);
+      const minutes = Math.floor((value % 3600) / 60);
+      const seconds = value % 60;
+      if (hours > 0) {
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function setChipState(chipId, isLive, text) {
+      const chip = document.getElementById(chipId);
+      if (!chip) return;
+      chip.textContent = text;
+      chip.style.background = isLive ? 'rgba(88, 255, 178, 0.18)' : 'rgba(255, 93, 93, 0.18)';
+      chip.style.borderColor = isLive ? 'rgba(88, 255, 178, 0.45)' : 'rgba(255, 93, 93, 0.45)';
+      chip.style.color = isLive ? '#58ffb2' : '#ff7b7b';
+      chip.style.boxShadow = isLive ? '0 0 14px rgba(88, 255, 178, 0.28)' : '0 0 14px rgba(255, 123, 123, 0.2)';
+      chip.style.transition = 'all 0.3s ease';
+    }
+
+    function renderResults(results) {
+      const target = document.getElementById('simulationResults');
+      if (!target) return;
+
+      if (!results || Object.keys(results).length === 0) {
+        target.textContent = 'No live results yet.';
+        return;
+      }
+
+      const lines = Object.entries(results).slice(0, 8).map(([key, value]) => {
+        const safeValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        return `<div><strong style="color: var(--text-primary);">${key}:</strong> ${safeValue}</div>`;
+      });
+
+      target.innerHTML = lines.join('');
+    }
+
+    async function loadSimulationStatus() {
+      try {
+        const data = await API.get('/api/simulation/status');
+
+        const dashboardLive = data.dashboardStatus === 'live';
+        const matlabConnected = data.matlab?.connectionStatus === 'connected';
+
+        setChipState('dashboardStatusChip', dashboardLive, dashboardLive ? '● DASHBOARD LIVE' : '● DASHBOARD OFFLINE');
+        setChipState('matlabStatusChip', matlabConnected, matlabConnected ? 'MATLAB: CONNECTED' : 'MATLAB: DISCONNECTED');
+
+        document.getElementById('dashboardStatusText').textContent = dashboardLive ? 'Live' : 'Offline';
+        document.getElementById('matlabStatusText').textContent = data.matlab?.connectionStatus || 'disconnected';
+        document.getElementById('simulationStateText').textContent = data.simulation?.state || 'idle';
+
+        const progress = Math.max(0, Math.min(100, Number(data.simulation?.progress || 0)));
+        document.getElementById('simulationProgressBar').style.width = `${progress}%`;
+        document.getElementById('simulationProgressLabel').textContent = `${Math.round(progress)}%`;
+        document.getElementById('simulationElapsed').textContent = formatSeconds(data.simulation?.elapsedSeconds);
+        document.getElementById('simulationEta').textContent = formatSeconds(data.simulation?.etaSeconds);
+        document.getElementById('simulationUpdatedAt').textContent = data.simulation?.updatedAt
+          ? new Date(data.simulation.updatedAt).toLocaleTimeString()
+          : '-';
+
+        renderResults(data.results);
+      } catch (err) {
+        setChipState('dashboardStatusChip', false, '● DASHBOARD OFFLINE');
+        setChipState('matlabStatusChip', false, 'MATLAB: DISCONNECTED');
+        document.getElementById('dashboardStatusText').textContent = 'Offline';
+        document.getElementById('matlabStatusText').textContent = 'disconnected';
+        document.getElementById('simulationStateText').textContent = 'unavailable';
+      }
+    }
 
     async function loadStats() {
       try {
@@ -154,21 +277,36 @@
     function animateCounter(elementId, target) {
       const element = document.getElementById(elementId);
       const duration = 2000;
-      const step = target / (duration / 16);
-      let current = 0;
+      const startTime = performance.now();
 
-      const update = () => {
-        current += step;
-        if (current < target) {
-          element.textContent = Math.floor(current);
+      const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+      const update = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutExpo(progress);
+        const currentValue = Math.floor(easedProgress * target);
+        
+        element.textContent = currentValue;
+        
+        if (progress < 1) {
           requestAnimationFrame(update);
         } else {
           element.textContent = target;
+          element.style.transition = 'transform 0.3s ease';
+          element.style.transform = 'scale(1.1)';
+          setTimeout(() => element.style.transform = 'scale(1)', 200);
         }
       };
 
-      update();
+      requestAnimationFrame(update);
     }
+
+    window.addEventListener('beforeunload', () => {
+      if (simulationPoller) {
+        clearInterval(simulationPoller);
+      }
+    });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="/js/particles.js?v=5"></script>

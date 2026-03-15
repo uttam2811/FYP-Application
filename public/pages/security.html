@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Center - FYP Power System</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="dashboard-page">
+  <div class="scan-lines"></div>
+
+  <main class="main-content" style="max-width: 980px; margin: 0 auto; padding: 24px;">
+    <header class="top-header" style="margin-top: 16px;">
+      <div class="dashboard-header-meta">
+        <p class="dashboard-eyebrow">Trust and Safety</p>
+        <h1>Security Center</h1>
+      </div>
+      <div class="header-actions">
+        <a href="/login" class="btn btn-outline btn-sm">Back to Login</a>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="card holographic" data-tilt>
+        <div class="card-header">
+          <h3>What Protects Your Account</h3>
+        </div>
+        <div class="card-body" style="line-height: 1.8; color: var(--text-secondary);">
+          <p><strong style="color: var(--text-primary);">Two-step verification (OTP):</strong> Login and registration require one-time code validation to reduce account takeover risk.</p>
+          <p><strong style="color: var(--text-primary);">Secure session cookies:</strong> Authentication tokens are stored in HTTP-only cookies so scripts cannot read them directly.</p>
+          <p><strong style="color: var(--text-primary);">Request throttling:</strong> Login and API calls are rate-limited to mitigate brute-force and abuse attempts.</p>
+          <p><strong style="color: var(--text-primary);">Browser security headers:</strong> The app enforces strict security headers to reduce clickjacking and script injection risks.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Recommended User Practices</h3>
+        </div>
+        <div class="card-body" style="line-height: 1.9; color: var(--text-secondary);">
+          <p>1. Use a unique password and avoid reusing passwords from other websites.</p>
+          <p>2. Do not share OTP codes with anyone, including support staff.</p>
+          <p>3. Log out after finishing work, especially on shared devices.</p>
+          <p>4. Report suspicious login behavior to the system administrator.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/futuristic.js"></script>
+</body>
+</html>

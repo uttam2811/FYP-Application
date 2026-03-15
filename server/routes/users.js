@@ -4,6 +4,14 @@ const bcrypt = require('bcryptjs');
 const { getAll, getOne, runStmt, saveDb } = require('../models/database');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidUsername(username) {
+  return /^[a-zA-Z0-9_]{3,30}$/.test(username);
+}
+
 // GET /api/users — list all users (admin only)
 router.get('/', authenticate, requireAdmin, (req, res) => {
   const users = getAll(
@@ -14,9 +22,20 @@ router.get('/', authenticate, requireAdmin, (req, res) => {
 
 // POST /api/users — add new user (admin only, new users get "viewer" role)
 router.post('/', authenticate, requireAdmin, (req, res) => {
-  const { username, email, password } = req.body;
+  const username = req.body.username?.trim();
+  const email = req.body.email?.trim().toLowerCase();
+  const password = req.body.password;
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'Username, email, and password are required' });
+  }
+  if (!isValidUsername(username)) {
+    return res.status(400).json({ error: 'Username must be 3-30 characters (letters, numbers, underscore only)' });
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Please provide a valid email address' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
   const existing = getOne('SELECT id FROM users WHERE username = ? OR email = ?', [username, email]);
